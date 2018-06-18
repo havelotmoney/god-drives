@@ -1,0 +1,15 @@
+{
+	"initial": [
+		"libs/modules/egret/egret.js",
+		"libs/modules/egret/egret.web.js",
+		"libs/modules/game/game.js",
+		"libs/modules/res/res.js"
+	],
+	"game": [
+		"bin-debug/Bitmap.js",
+		"bin-debug/BitmapText.js",
+		"bin-debug/ImageLoader.js",
+		"bin-debug/Main.js",
+		"bin-debug/TextField.js"
+	]
+}

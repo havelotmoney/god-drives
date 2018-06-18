@@ -1,0 +1,32 @@
+{
+  "engineVersion": "5.2.2",
+  "compilerVersion": "5.2.2",
+  "template": {},
+  "target": {
+    "current": "wxgame"
+  },
+  "modules": [
+    {
+      "name": "egret"
+    },
+    {
+      "name": "game"
+    },
+    {
+      "name": "tween"
+    },
+    {
+      "name": "dragonBones"
+    },
+    {
+      "name": "res"
+    },
+    {
+      "name": "promise"
+    },
+    {
+      "name": "EventManager",
+      "path": "libs/EventManager"
+    }
+  ]
+}
