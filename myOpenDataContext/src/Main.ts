@@ -1,8 +1,7 @@
 class Main extends egret.DisplayObjectContainer {
-
+    private wrap: egret.Sprite;
     constructor() {
         super();
-
         wx.onMessage(data => {
             if (data.isDisplay) {
                 //获取小游戏开放数据接口 --- 开始
@@ -56,6 +55,9 @@ class Main extends egret.DisplayObjectContainer {
     ]
 
     private runGame(list: Array<any>) {
+        this.wrap = this.wrap || new egret.Sprite;
+        this.stage.addChild(this.wrap);
+        this.wrap.removeChildren();
         list.forEach((config, index) => {
             console.log(JSON.parse(config['KVDataList'][0]['value']))
             let sp = this.renderItem({
@@ -65,7 +67,7 @@ class Main extends egret.DisplayObjectContainer {
                 score: JSON.parse(config['KVDataList'][0]['value'])['wxgame']['score'] || 0
             }, index);
             sp.y = index * 100;
-            this.stage.addChild(sp);
+            this.wrap.addChild(sp);
         })
     }
     renderItem(item, index) {
@@ -80,21 +82,23 @@ class Main extends egret.DisplayObjectContainer {
         sp.addChild(bg);
         bg.alpha = index % 2 == 0 ? 0 : 1;
         if (item.rank < 4) {
-            let spRank = new Bitmap({
-                source: 'rank-icon' + item.rank + '_png',
+            let spRank = new ImageLoader({
+                src: 'resource/assets/rank-icon' + item.rank + '.png',
                 x: 40,
                 y: 18
             })
             sp.addChild(spRank);
         } else {
-            let spRank = new BitmapText({
-                source: 'fnt-rankNum_fnt',
+            let spRank = new TextField({
+                bold: true,
+                size: 40,
                 x: 45,
                 width: 57,
                 textAlign: 'center',
                 height: 100,
                 verticalAlign: 'middle',
-                text: item.rank.toString()
+                text: item.rank.toString(),
+                color: 0x000000
             })
             sp.addChild(spRank);
         }
@@ -115,16 +119,17 @@ class Main extends egret.DisplayObjectContainer {
             verticalAlign: 'middle'
         })
         sp.addChild(spName);
-        let spScore = new BitmapText({
-            source: 'fnt_rank_fnt',
+        let spScore = new TextField({
+            size: 40,
+            color: 0x000000,
             text: item['score'].toString(),
             x: 430,
-            width: 220 / .5,
+            width: 220,
             textAlign: 'center',
-            y: 50
+            height: 100,
+            verticalAlign: 'middle',
+            bold: true
         })
-        spScore.scaleX = spScore.scaleY = .5;
-        spScore.anchorOffsetY = spScore.height / 2;
         sp.addChild(spScore);
         return sp;
     }

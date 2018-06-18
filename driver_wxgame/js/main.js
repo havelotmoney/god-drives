@@ -1238,8 +1238,9 @@ var RankLayer = (function (_super) {
         _this.scroll.horizontalScrollPolicy = 'off';
         _this.wrap.addChild(_this.scroll);
         _this.createRank();
-        _this.createMenus();
         _this.createMine();
+        _this.createMenus();
+        _this.changeCnt(0);
         return _this;
     }
     RankLayer.prototype.createMine = function () {
@@ -1371,6 +1372,11 @@ var RankLayer = (function (_super) {
         bitmap.width *= ratio;
         bitmap.height *= ratio;
         this.wraps[0].addChild(bitmap);
+        egret.startTick(function (timeStarmp) {
+            egret.WebGLUtils.deleteWebGLTexture(bitmapdata.webGLTexture);
+            bitmapdata.webGLTexture = null;
+            return false;
+        }, this);
     };
     RankLayer.prototype.renderItem = function (item, index) {
         var sp = new egret.Sprite;
@@ -1391,14 +1397,16 @@ var RankLayer = (function (_super) {
             sp.addChild(spRank);
         }
         else {
-            var spRank = new BitmapText({
-                source: 'fnt-rankNum_fnt',
+            var spRank = new TextField({
+                bold: true,
+                size: 40,
                 x: 45,
                 width: 57,
                 textAlign: 'center',
                 height: 100,
                 verticalAlign: 'middle',
-                text: item.rank.toString()
+                text: item.rank.toString(),
+                color: 0x000000
             });
             sp.addChild(spRank);
         }
@@ -1419,25 +1427,22 @@ var RankLayer = (function (_super) {
             verticalAlign: 'middle'
         });
         sp.addChild(spName);
-        var spScore = new BitmapText({
-            source: 'fnt_rank_fnt',
+        var spScore = new TextField({
+            size: 40,
+            color: 0x000000,
             text: item['score'].toString(),
             x: 430,
-            width: 220 / .5,
+            width: 220,
             textAlign: 'center',
-            y: 50
+            height: 100,
+            verticalAlign: 'middle',
+            bold: true
         });
-        spScore.scaleX = spScore.scaleY = .5;
-        spScore.anchorOffsetY = spScore.height / 2;
         sp.addChild(spScore);
         return sp;
     };
     RankLayer.prototype.changeCnt = function (index) {
-        // let wrap = this.wraps[index];
-        // if (wrap) {
-        //   this.wrap.addChild(this.wraps[index]);
-        //   wrap.y = 142;
-        // }
+        console.log(1);
         this.scroll.setContent(this.wraps[index]);
         var openDataContext = wx.getOpenDataContext();
         openDataContext.postMessage({

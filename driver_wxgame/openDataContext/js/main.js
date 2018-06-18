@@ -58,64 +58,6 @@ var Bitmap = (function (_super) {
     return Bitmap;
 }(egret.Bitmap));
 __reflect(Bitmap.prototype, "Bitmap");
-/**
- * 生成位图文字
- * @config 配置信息,传入的可以是string，也可以是object
- * @author wangnan
- */
-var BitmapText = (function (_super) {
-    __extends(BitmapText, _super);
-    /****************方法***************/
-    //初始化
-    function BitmapText(config) {
-        var _this = _super.call(this) || this;
-        var self = _this;
-        if (typeof config === 'string') {
-            self.src = config;
-        }
-        else if (typeof config === 'object') {
-            config.source != undefined && (self.src = config.source);
-            config.width != undefined && (self.width = config.width);
-            config.height != undefined && (self.height = config.height);
-            config.text != undefined && (self.text = config.text);
-            config.textAlign != undefined && (self.textAlign = config.textAlign);
-            config.verticalAlign != undefined && (self.verticalAlign = config.verticalAlign);
-            config.letterSpacing != undefined && (self.letterSpacing = config.letterSpacing);
-            config.lineSpacing != undefined && (self.lineSpacing = config.lineSpacing);
-            config.x != undefined && (self.x = config.x);
-            config.y != undefined && (self.y = config.y);
-            config.anchorOffsetX != undefined && (self.anchorOffsetX = config.anchorOffsetX);
-            config.anchorOffsetY != undefined && (self.anchorOffsetY = config.anchorOffsetY);
-            config.scaleX != undefined && (self.scaleX = config.scaleX);
-            config.scaleY != undefined && (self.scaleY = config.scaleY);
-        }
-        return _this;
-    }
-    Object.defineProperty(BitmapText.prototype, "cont", {
-        get: function () {
-            return this._cont;
-        },
-        set: function (newCont) {
-            this._cont = newCont;
-            this.text = newCont;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(BitmapText.prototype, "src", {
-        get: function () {
-            return this._src;
-        },
-        set: function (newSrc) {
-            this._src = newSrc;
-            this.font = RES.getRes(newSrc);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return BitmapText;
-}(egret.BitmapText));
-__reflect(BitmapText.prototype, "BitmapText");
 var ImageLoader = (function (_super) {
     __extends(ImageLoader, _super);
     function ImageLoader(config) {
@@ -231,6 +173,9 @@ var Main = (function (_super) {
     }
     Main.prototype.runGame = function (list) {
         var _this = this;
+        this.wrap = this.wrap || new egret.Sprite;
+        this.stage.addChild(this.wrap);
+        this.wrap.removeChildren();
         list.forEach(function (config, index) {
             console.log(JSON.parse(config['KVDataList'][0]['value']));
             var sp = _this.renderItem({
@@ -240,7 +185,7 @@ var Main = (function (_super) {
                 score: JSON.parse(config['KVDataList'][0]['value'])['wxgame']['score'] || 0
             }, index);
             sp.y = index * 100;
-            _this.stage.addChild(sp);
+            _this.wrap.addChild(sp);
         });
     };
     Main.prototype.renderItem = function (item, index) {
@@ -255,22 +200,24 @@ var Main = (function (_super) {
         sp.addChild(bg);
         bg.alpha = index % 2 == 0 ? 0 : 1;
         if (item.rank < 4) {
-            var spRank = new Bitmap({
-                source: 'rank-icon' + item.rank + '_png',
+            var spRank = new ImageLoader({
+                src: 'resource/assets/rank-icon' + item.rank + '.png',
                 x: 40,
                 y: 18
             });
             sp.addChild(spRank);
         }
         else {
-            var spRank = new BitmapText({
-                source: 'fnt-rankNum_fnt',
+            var spRank = new TextField({
+                bold: true,
+                size: 40,
                 x: 45,
                 width: 57,
                 textAlign: 'center',
                 height: 100,
                 verticalAlign: 'middle',
-                text: item.rank.toString()
+                text: item.rank.toString(),
+                color: 0x000000
             });
             sp.addChild(spRank);
         }
@@ -291,16 +238,17 @@ var Main = (function (_super) {
             verticalAlign: 'middle'
         });
         sp.addChild(spName);
-        var spScore = new BitmapText({
-            source: 'fnt_rank_fnt',
+        var spScore = new TextField({
+            size: 40,
+            color: 0x000000,
             text: item['score'].toString(),
             x: 430,
-            width: 220 / .5,
+            width: 220,
             textAlign: 'center',
-            y: 50
+            height: 100,
+            verticalAlign: 'middle',
+            bold: true
         });
-        spScore.scaleX = spScore.scaleY = .5;
-        spScore.anchorOffsetY = spScore.height / 2;
         sp.addChild(spScore);
         return sp;
     };

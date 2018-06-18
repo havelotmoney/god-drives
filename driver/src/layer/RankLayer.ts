@@ -89,8 +89,9 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.wrap.addChild(this.scroll)
 
     this.createRank();
-    this.createMenus();
     this.createMine()
+    this.createMenus();
+    this.changeCnt(0)
   }
   createMine() {
     this.wrapMine = new egret.Sprite();
@@ -220,6 +221,12 @@ class RankLayer extends egret.DisplayObjectContainer {
     bitmap.width *= ratio;
     bitmap.height *= ratio;
     this.wraps[0].addChild(bitmap);
+
+    egret.startTick((timeStarmp: number) => {
+      egret.WebGLUtils.deleteWebGLTexture(bitmapdata.webGLTexture);
+      bitmapdata.webGLTexture = null;
+      return false;
+    }, this);
   }
   renderItem(item, index) {
     let sp = new egret.Sprite;
@@ -239,14 +246,16 @@ class RankLayer extends egret.DisplayObjectContainer {
       })
       sp.addChild(spRank);
     } else {
-      let spRank = new BitmapText({
-        source: 'fnt-rankNum_fnt',
+      let spRank = new TextField({
+        bold: true,
+        size: 40,
         x: 45,
         width: 57,
         textAlign: 'center',
         height: 100,
         verticalAlign: 'middle',
-        text: item.rank.toString()
+        text: item.rank.toString(),
+        color: 0x000000
       })
       sp.addChild(spRank);
     }
@@ -267,27 +276,23 @@ class RankLayer extends egret.DisplayObjectContainer {
       verticalAlign: 'middle'
     })
     sp.addChild(spName);
-    let spScore = new BitmapText({
-      source: 'fnt_rank_fnt',
+    let spScore = new TextField({
+      size: 40,
+      color: 0x000000,
       text: item['score'].toString(),
       x: 430,
-      width: 220 / .5,
+      width: 220,
       textAlign: 'center',
-      y: 50
+      height: 100,
+      verticalAlign: 'middle',
+      bold: true
     })
-    spScore.scaleX = spScore.scaleY = .5;
-    spScore.anchorOffsetY = spScore.height / 2;
     sp.addChild(spScore);
     return sp;
   }
   changeCnt(index) {
-    // let wrap = this.wraps[index];
-    // if (wrap) {
-    //   this.wrap.addChild(this.wraps[index]);
-    //   wrap.y = 142;
-    // }
+    console.log(1)
     this.scroll.setContent(this.wraps[index]);
-
     let openDataContext = wx.getOpenDataContext();
     openDataContext.postMessage({
       isDisplay: true,
