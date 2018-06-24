@@ -56,5 +56,20 @@ class StartLayer extends egret.Sprite {
             UImanager.showRank()
         }, this)
 
+        let txtAuthTip = new TextField({
+            size: 28,
+            color: 0xffffff,
+            text: '登陆后才可以进行游戏哦~',
+            y: 950 - 13 + UIConfig.offsetH,
+            width: this.width,
+            textAlign: 'center'
+        })
+        this.addChild(txtAuthTip);
+
+        EventManager.sub('togglePageAuth', (flag) => {
+            this.btn_start.visible = !flag;
+            this.btn_lookrank.visible = !flag;
+            txtAuthTip.visible = flag;
+        })
     }
 }

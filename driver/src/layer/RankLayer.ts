@@ -56,6 +56,7 @@ class RankLayer extends egret.DisplayObjectContainer {
   private wraps: Array<egret.Sprite> = [];
   private menus: Array<Button> = [];
   private wrapMine: egret.Sprite;
+  private wrapSelfData: egret.Sprite;
   constructor() {
     super();
     let mask = new Mask(.6);
@@ -88,8 +89,8 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.scroll.horizontalScrollPolicy = 'off';
     this.wrap.addChild(this.scroll)
 
-    this.createRank();
     this.createMine()
+    this.createRank();
     this.createMenus();
     this.changeCnt(0)
   }
@@ -104,9 +105,9 @@ class RankLayer extends egret.DisplayObjectContainer {
       height: 134
     })
     this.wrapMine.addChild(bg);
-    let sp = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0)
-    sp.y = 17;
-    this.wrapMine.addChild(sp);
+    this.wrapSelfData = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0)
+    this.wrapSelfData.y = 17;
+    this.wrapMine.addChild(this.wrapSelfData);
   }
   createMenus() {
     let wrapMenu = new egret.Sprite;
@@ -184,6 +185,9 @@ class RankLayer extends egret.DisplayObjectContainer {
     })
     btnBack.addChild(txtBack);
     this.addChild(btnBack);
+    btnBack.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
+      UImanager.hideRank()
+    }, this);
     let btnAgain = new Button({
       default: 'btn-bg-red_png',
       x: UIConfig.stageW / 2,
@@ -198,8 +202,9 @@ class RankLayer extends egret.DisplayObjectContainer {
     btnAgain.addChild(txtAgain);
     this.addChild(btnAgain);
     btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
-      EventManager.pub('resetGame')
       UImanager.hideRank();
+      EventManager.pub('resetGame')
+      EventManager.pub('startGame')
     }, this);
   }
   renderRank(index, list = testRank) {
@@ -209,6 +214,7 @@ class RankLayer extends egret.DisplayObjectContainer {
       let sp = this.renderItem(item, index);
       wrap.addChild(sp);
     })
+    this.scroll.setContent(this.wraps[1]);
   }
   renderFriend() {
     this.wraps[0] = new egret.Sprite;
@@ -217,6 +223,7 @@ class RankLayer extends egret.DisplayObjectContainer {
     let texture = new egret.Texture();
     texture._setBitmapData(bitmapdata);
     let bitmap = new egret.Bitmap(texture);
+    bitmap.fillMode = egret.BitmapFillMode.SCALE;
     let ratio = this.wrap.width / bitmap.width;
     bitmap.width *= ratio;
     bitmap.height *= ratio;
@@ -227,6 +234,8 @@ class RankLayer extends egret.DisplayObjectContainer {
       bitmapdata.webGLTexture = null;
       return false;
     }, this);
+    this.addChild(this.wraps[0]);
+    this.wraps[0].y = 202;
   }
   renderItem(item, index) {
     let sp = new egret.Sprite;
@@ -291,8 +300,11 @@ class RankLayer extends egret.DisplayObjectContainer {
     return sp;
   }
   changeCnt(index) {
-    console.log(1)
-    this.scroll.setContent(this.wraps[index]);
+    if (this.wrapSelfData) {
+      this.wrapSelfData.visible = index == 1;
+    }
+    this.scroll.visible = index == 1;
+    this.wraps[0].visible = index == 0;
     let openDataContext = wx.getOpenDataContext();
     openDataContext.postMessage({
       isDisplay: true,

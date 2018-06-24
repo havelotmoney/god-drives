@@ -37,8 +37,8 @@ class Main extends egret.DisplayObjectContainer {
       RES.removeEventListener(RES.ResourceEvent.GROUP_LOAD_ERROR, this.onResourceLoadError, this);
       RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
       RES.removeEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
-      LoginManager.login()
       this.createGameScene();
+      LoginManager.gameLogin()
       EventManager.pub('tiki/init');
     }
   }

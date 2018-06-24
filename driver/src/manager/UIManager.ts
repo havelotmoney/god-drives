@@ -276,9 +276,9 @@ class UIManager {
     let mc: egret.MovieClip = new egret.MovieClip(mcDataFactory.generateMovieClipData(sourceName));
     return mc;
   }
-  showResult(score) {
+  showResult(score, isNew = false) {
     this.layerResult = this.layerResult || new ResultLayer();
-    this.layerResult.setScore(score);
+    this.layerResult.setScore(score, isNew);
     this.container.addChild(this.layerResult);
   }
   hideResult() {

@@ -11,7 +11,7 @@ egret.runEgret({
 		frameRate: 60,
 		scaleMode: "fixedWidth",
 		contentWidth: 647,
-		contentHeight: 800,
+		contentHeight: 954,
 		showFPS: false,
 		fpsStyles: "x:0,y:0,size:12,textColor:0xffffff,bgAlpha:0.9",
 		showLog: false,

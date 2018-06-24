@@ -60,7 +60,6 @@ class ResultLayer extends egret.DisplayObjectContainer {
     this.wrap.addChild(btnRank);
     btnRank.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
       UImanager.showRank();
-      
     }, this);
 
     this.tagNew = new Bitmap({

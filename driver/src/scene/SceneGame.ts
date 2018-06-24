@@ -422,8 +422,8 @@ class SceneGame extends egret.DisplayObjectContainer {
         //游戏结束
         let score = Math.abs(Math.floor(myCar.y));
         this.gameOverInit()
-        UImanager.showResult(score)
-        wxCenter.updateScore(score)
+        let isNew = wxCenter.updateScore(score)
+        UImanager.showResult(score, isNew)
       }
     }, 33)
   }
@@ -581,6 +581,7 @@ class SceneGame extends egret.DisplayObjectContainer {
 
     EventManager.sub('resetGame', () => {
       this.init();
+      EventManager.pub('togglePageAuth', false);
     })
 
     EventManager.sub('testCrash', () => {

@@ -55,9 +55,11 @@ class Main extends egret.DisplayObjectContainer {
     ]
 
     private runGame(list: Array<any>) {
+        let stage: egret.Stage = egret.MainContext.instance.stage;
         this.wrap = this.wrap || new egret.Sprite;
-        this.stage.addChild(this.wrap);
+        this.stage.addChild(this.wrap)
         this.wrap.removeChildren();
+        let wrap2 = new egret.Sprite;
         list.forEach((config, index) => {
             console.log(JSON.parse(config['KVDataList'][0]['value']))
             let sp = this.renderItem({
@@ -67,8 +69,24 @@ class Main extends egret.DisplayObjectContainer {
                 score: JSON.parse(config['KVDataList'][0]['value'])['wxgame']['score'] || 0
             }, index);
             sp.y = index * 100;
-            this.wrap.addChild(sp);
+            sp.x = 50;
+            wrap2.addChild(sp);
         })
+
+        let scroll = new egret.ScrollView();
+        scroll.width = stage.stageWidth;
+        scroll.height = stage.stageHeight - 154;
+        scroll.y = 22;
+        scroll.horizontalScrollPolicy = 'off';
+        console.log(scroll.width, scroll.height)
+
+        this.wrap.addChild(scroll);
+        scroll.setContent(wrap2);
+
+        let spMine = this.renderItem({ name: '3232', rank: 2, avatar: '', score: 22222222222 }, 0);
+        spMine.x = 53;
+        spMine.y = 716;
+        this.wrap.addChild(spMine);
     }
     renderItem(item, index) {
         let stage: egret.Stage = egret.MainContext.instance.stage;

@@ -117,8 +117,8 @@ var Main = (function (_super) {
             RES.removeEventListener(RES.ResourceEvent.GROUP_LOAD_ERROR, this.onResourceLoadError, this);
             RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
             RES.removeEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
-            LoginManager.login();
             this.createGameScene();
+            LoginManager.gameLogin();
             EventManager.pub('tiki/init');
         }
     };
@@ -1093,11 +1093,136 @@ function GetQueryString(name) {
 var LoginManager = (function () {
     function LoginManager() {
     }
-    LoginManager.login = function () {
+    LoginManager.ajax = function (type, data) {
     };
+    LoginManager.sendMessage = function (type, data) {
+        var _this = this;
+        return new Promise(function (rsv, rej) {
+            _this.checkAjax().then(function (e) {
+                _this.ajax(type, data);
+            });
+        });
+    };
+    LoginManager.checkAjax = function () {
+        var _this = this;
+        // 发送请求前检验登陆态，过期自动重新登陆
+        return new Promise(function (rsv, rej) {
+            _this.checkSession().then(function (e) {
+                rsv();
+            }).catch(function (e) {
+                _this.login().then(function (e) {
+                    rsv();
+                }).catch(function (e) {
+                    rej();
+                });
+            });
+        });
+    };
+    LoginManager.checkSession = function () {
+        var _this = this;
+        return new Promise(function (rsv, rej) {
+            if (!_this.code) {
+                console.warn('登陆态过期');
+                rej();
+            }
+            else {
+                wx.checkSession({
+                    success: function (res) {
+                        console.log('登陆态未过期');
+                        rsv();
+                    },
+                    fail: function (res) {
+                        console.warn('登陆态过期');
+                        rej();
+                    }
+                });
+            }
+        });
+    };
+    LoginManager.login = function () {
+        return new Promise(function (rsv, rej) {
+            wx.login({
+                success: function (res) {
+                    console.log(res.code);
+                    LoginManager.code = res.code;
+                    rsv();
+                },
+                fail: function (res) {
+                    rej();
+                }
+            });
+        });
+    };
+    LoginManager.getUserInfo = function () {
+        return new Promise(function (rsv, rej) {
+            wx.getSetting({
+                success: function (res) {
+                    if (!res.authSetting['scope.userInfo'] && wx.createUserInfoButton) {
+                        wx.getSystemInfo({
+                            success: function (res) {
+                                var h = res.screenHeight;
+                                var w = res.screenWidth;
+                                var ratio = w / h > 750 / 1334 ? h / 1334 : w / 750;
+                                EventManager.pub('togglePageAuth', true);
+                                var button = wx.createUserInfoButton({
+                                    type: 'text',
+                                    text: '登陆',
+                                    style: {
+                                        left: (UIConfig.stageW - 361) * ratio / 2,
+                                        top: (860 + UIConfig.offsetH - 50) * ratio,
+                                        width: 361 * ratio,
+                                        height: 101 * ratio,
+                                        lineHeight: 40,
+                                        backgroundColor: '#ff6852',
+                                        color: '#ffffff',
+                                        textAlign: 'center',
+                                        fontSize: 16,
+                                        borderRadius: 400
+                                    }
+                                });
+                                EventManager.sub('togglePageAuth', function (flag) {
+                                    if (!flag) {
+                                        button.hide();
+                                    }
+                                });
+                                button.onTap(function (res) {
+                                    if (res.errMsg.indexOf('fail') == -1) {
+                                        EventManager.pub('togglePageAuth', false);
+                                        rsv(res.userInfo);
+                                    }
+                                    else {
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    else {
+                        wx.getUserInfo({
+                            success: function (res) {
+                                console.log('success', res.userInfo);
+                                EventManager.pub('togglePageAuth', false);
+                            },
+                            fail: function (res) {
+                                // reject(res)
+                            }
+                        });
+                    }
+                },
+            });
+        });
+    };
+    LoginManager.gameLogin = function () {
+        var _this = this;
+        this.getUserInfo().then(function (data) {
+            wxCenter.userInfo = data;
+            _this.login();
+        });
+    };
+    LoginManager.code = '';
     return LoginManager;
 }());
 __reflect(LoginManager.prototype, "LoginManager");
+window['LoginManager'] = LoginManager;
 // TypeScript file
 var RobotCenter = {
     playcount: 0,
@@ -1133,7 +1258,24 @@ RobotCenter.init();
 var wxCenter = (function () {
     function wxCenter() {
     }
+    wxCenter.getMyBest = function () {
+        var data = egret.localStorage.getItem('selfData') || '{}';
+        data = JSON.parse(data);
+        var score = +(data['score'] || 0);
+        wxCenter.bestScore = score;
+    };
+    wxCenter.setMyBest = function (score) {
+        var data = egret.localStorage.getItem('selfData') || '{}';
+        data = JSON.parse(data);
+        data['score'] = score;
+        egret.localStorage.setItem('selfData', JSON.stringify(data));
+    };
     wxCenter.updateScore = function (score) {
+        if (score <= wxCenter.bestScore) {
+            return false;
+        }
+        wxCenter.bestScore = score;
+        wxCenter.setMyBest(score);
         var timeStamp = Math.floor(new Date().getTime() / 1000);
         var data = {
             "key": "rank",
@@ -1147,7 +1289,10 @@ var wxCenter = (function () {
         wx.setUserCloudStorage({
             KVDataList: [data]
         });
+        return true;
     };
+    wxCenter.bestScore = 0;
+    wxCenter.userInfo = {};
     return wxCenter;
 }());
 __reflect(wxCenter.prototype, "wxCenter");
@@ -1237,8 +1382,8 @@ var RankLayer = (function (_super) {
         _this.scroll.y = 142;
         _this.scroll.horizontalScrollPolicy = 'off';
         _this.wrap.addChild(_this.scroll);
-        _this.createRank();
         _this.createMine();
+        _this.createRank();
         _this.createMenus();
         _this.changeCnt(0);
         return _this;
@@ -1254,9 +1399,9 @@ var RankLayer = (function (_super) {
             height: 134
         });
         this.wrapMine.addChild(bg);
-        var sp = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0);
-        sp.y = 17;
-        this.wrapMine.addChild(sp);
+        this.wrapSelfData = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0);
+        this.wrapSelfData.y = 17;
+        this.wrapMine.addChild(this.wrapSelfData);
     };
     RankLayer.prototype.createMenus = function () {
         var _this = this;
@@ -1333,6 +1478,9 @@ var RankLayer = (function (_super) {
         });
         btnBack.addChild(txtBack);
         this.addChild(btnBack);
+        btnBack.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            UImanager.hideRank();
+        }, this);
         var btnAgain = new Button({
             default: 'btn-bg-red_png',
             x: UIConfig.stageW / 2,
@@ -1347,8 +1495,9 @@ var RankLayer = (function (_super) {
         btnAgain.addChild(txtAgain);
         this.addChild(btnAgain);
         btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
-            EventManager.pub('resetGame');
             UImanager.hideRank();
+            EventManager.pub('resetGame');
+            EventManager.pub('startGame');
         }, this);
     };
     RankLayer.prototype.renderRank = function (index, list) {
@@ -1360,6 +1509,7 @@ var RankLayer = (function (_super) {
             var sp = _this.renderItem(item, index);
             wrap.addChild(sp);
         });
+        this.scroll.setContent(this.wraps[1]);
     };
     RankLayer.prototype.renderFriend = function () {
         this.wraps[0] = new egret.Sprite;
@@ -1368,6 +1518,7 @@ var RankLayer = (function (_super) {
         var texture = new egret.Texture();
         texture._setBitmapData(bitmapdata);
         var bitmap = new egret.Bitmap(texture);
+        bitmap.fillMode = egret.BitmapFillMode.SCALE;
         var ratio = this.wrap.width / bitmap.width;
         bitmap.width *= ratio;
         bitmap.height *= ratio;
@@ -1377,6 +1528,8 @@ var RankLayer = (function (_super) {
             bitmapdata.webGLTexture = null;
             return false;
         }, this);
+        this.addChild(this.wraps[0]);
+        this.wraps[0].y = 202;
     };
     RankLayer.prototype.renderItem = function (item, index) {
         var sp = new egret.Sprite;
@@ -1442,8 +1595,11 @@ var RankLayer = (function (_super) {
         return sp;
     };
     RankLayer.prototype.changeCnt = function (index) {
-        console.log(1);
-        this.scroll.setContent(this.wraps[index]);
+        if (this.wrapSelfData) {
+            this.wrapSelfData.visible = index == 1;
+        }
+        this.scroll.visible = index == 1;
+        this.wraps[0].visible = index == 0;
         var openDataContext = wx.getOpenDataContext();
         openDataContext.postMessage({
             isDisplay: true,
@@ -1601,6 +1757,20 @@ var StartLayer = (function (_super) {
         _this.btn_lookrank.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
             UImanager.showRank();
         }, _this);
+        var txtAuthTip = new TextField({
+            size: 28,
+            color: 0xffffff,
+            text: '登陆后才可以进行游戏哦~',
+            y: 950 - 13 + UIConfig.offsetH,
+            width: _this.width,
+            textAlign: 'center'
+        });
+        _this.addChild(txtAuthTip);
+        EventManager.sub('togglePageAuth', function (flag) {
+            _this.btn_start.visible = !flag;
+            _this.btn_lookrank.visible = !flag;
+            txtAuthTip.visible = flag;
+        });
         return _this;
     }
     return StartLayer;
@@ -1929,9 +2099,10 @@ var UIManager = (function () {
         var mc = new egret.MovieClip(mcDataFactory.generateMovieClipData(sourceName));
         return mc;
     };
-    UIManager.prototype.showResult = function (score) {
+    UIManager.prototype.showResult = function (score, isNew) {
+        if (isNew === void 0) { isNew = false; }
         this.layerResult = this.layerResult || new ResultLayer();
-        this.layerResult.setScore(score);
+        this.layerResult.setScore(score, isNew);
         this.container.addChild(this.layerResult);
     };
     UIManager.prototype.hideResult = function () {
@@ -2295,8 +2466,8 @@ var SceneGame = (function (_super) {
                 //游戏结束
                 var score = Math.abs(Math.floor(myCar.y));
                 _this.gameOverInit();
-                UImanager.showResult(score);
-                wxCenter.updateScore(score);
+                var isNew = wxCenter.updateScore(score);
+                UImanager.showResult(score, isNew);
             }
         }, 33);
     };
@@ -2446,6 +2617,7 @@ var SceneGame = (function (_super) {
         });
         EventManager.sub('resetGame', function () {
             _this.init();
+            EventManager.pub('togglePageAuth', false);
         });
         EventManager.sub('testCrash', function () {
             if (myCar.x <= 180 + 73 / 2 + UIConfig.offsetW) {

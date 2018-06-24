@@ -173,9 +173,11 @@ var Main = (function (_super) {
     }
     Main.prototype.runGame = function (list) {
         var _this = this;
+        var stage = egret.MainContext.instance.stage;
         this.wrap = this.wrap || new egret.Sprite;
         this.stage.addChild(this.wrap);
         this.wrap.removeChildren();
+        var wrap2 = new egret.Sprite;
         list.forEach(function (config, index) {
             console.log(JSON.parse(config['KVDataList'][0]['value']));
             var sp = _this.renderItem({
@@ -185,8 +187,21 @@ var Main = (function (_super) {
                 score: JSON.parse(config['KVDataList'][0]['value'])['wxgame']['score'] || 0
             }, index);
             sp.y = index * 100;
-            _this.wrap.addChild(sp);
+            sp.x = 50;
+            wrap2.addChild(sp);
         });
+        var scroll = new egret.ScrollView();
+        scroll.width = stage.stageWidth + 200;
+        scroll.height = stage.stageHeight - 154;
+        scroll.y = 22;
+        scroll.horizontalScrollPolicy = 'off';
+        console.log(scroll.width, scroll.height);
+        this.wrap.addChild(scroll);
+        scroll.setContent(wrap2);
+        var spMine = this.renderItem({ name: '3232', rank: 2, avatar: '', score: 22222222222 }, 0);
+        spMine.x = 53;
+        spMine.y = 716;
+        this.wrap.addChild(spMine);
     };
     Main.prototype.renderItem = function (item, index) {
         var stage = egret.MainContext.instance.stage;
