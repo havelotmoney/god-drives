@@ -233,7 +233,7 @@ declare const wx: {
     /**
      * 在无须用户授权的情况下，批量获取用户信息。该接口只在开放数据域下可用
      */
-    getUserInfo(object: {openIdList:any[],lang:string,success:(res:any)=>void,fail:(res:any)=>void,complete:(res:any)=>void}): void;
+    getUserInfo(object: {openIdList?:any[],lang?:string,success:(res:any)=>void,fail:(res:any)=>void,complete?:(res:any)=>void}): void;
     getSetting(object: {success:(res:any)=>void,fail:(res:any)=>void,complete:(res:any)=>void}): void;
     openSetting(object: {success:(res:any)=>void,fail:(res:any)=>void,complete:(res:any)=>void}): void;
     getWeRunData(object: {success:(res:any)=>void,fail:(res:any)=>void,complete:(res:any)=>void}): void;

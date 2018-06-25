@@ -123,26 +123,8 @@ var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
         var _this = _super.call(this) || this;
-        /**
-         * 便于演示数据，这里使用家数据
-         * 有关获取还有的接口参考：https://mp.weixin.qq.com/debug/wxagame/dev/tutorial/open-ability/open-data.html?t=2018323
-         */
-        _this.gameData = [
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 100, time: 1000 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 101, time: 100 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 102, time: 1700 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 103, time: 1800 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 104, time: 1900 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 105, time: 1070 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 106, time: 1030 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 107, time: 1010 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 108, time: 1020 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 109, time: 1030 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 111, time: 1040 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 112, time: 1050 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 123, time: 1060 }] },
-            { openId: '', avatarUrl: '', nickName: 'peony', data: [{ score: 167, time: 1080 }] }
-        ];
+        _this.info = {};
+        var self = _this;
         wx.onMessage(function (data) {
             if (data.isDisplay) {
                 //获取小游戏开放数据接口 --- 开始
@@ -171,6 +153,13 @@ var Main = (function (_super) {
         }, _this);
         return _this;
     }
+    /**
+     * 便于演示数据，这里使用家数据
+     * 有关获取还有的接口参考：https://mp.weixin.qq.com/debug/wxagame/dev/tutorial/open-ability/open-data.html?t=2018323
+     */
+    Main.prototype.sort = function (a, b) {
+        return JSON.parse(b['KVDataList'][0]['value'])['wxgame']['score'] - JSON.parse(a['KVDataList'][0]['value'])['wxgame']['score'];
+    };
     Main.prototype.runGame = function (list) {
         var _this = this;
         var stage = egret.MainContext.instance.stage;
@@ -178,6 +167,7 @@ var Main = (function (_super) {
         this.stage.addChild(this.wrap);
         this.wrap.removeChildren();
         var wrap2 = new egret.Sprite;
+        list = list.sort(this.sort);
         list.forEach(function (config, index) {
             console.log(JSON.parse(config['KVDataList'][0]['value']));
             var sp = _this.renderItem({
@@ -191,17 +181,34 @@ var Main = (function (_super) {
             wrap2.addChild(sp);
         });
         var scroll = new egret.ScrollView();
-        scroll.width = stage.stageWidth + 200;
+        scroll.width = stage.stageWidth;
         scroll.height = stage.stageHeight - 154;
         scroll.y = 22;
         scroll.horizontalScrollPolicy = 'off';
         console.log(scroll.width, scroll.height);
         this.wrap.addChild(scroll);
         scroll.setContent(wrap2);
+        var infoMine = this.getMine(list);
+        console.log(infoMine);
         var spMine = this.renderItem({ name: '3232', rank: 2, avatar: '', score: 22222222222 }, 0);
         spMine.x = 53;
         spMine.y = 716;
         this.wrap.addChild(spMine);
+    };
+    Main.prototype.getMine = function (list) {
+        var self = this;
+        wx.getUserInfo({
+            success: function (res) {
+                self.info = res.userInfo;
+                list.forEach(function (item) {
+                    if (item['openid'] == self.info['openId']) {
+                        return item;
+                    }
+                });
+            },
+            fail: function (res) {
+            }
+        });
     };
     Main.prototype.renderItem = function (item, index) {
         var stage = egret.MainContext.instance.stage;
