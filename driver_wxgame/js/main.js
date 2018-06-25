@@ -1245,7 +1245,7 @@ var LoginManager = (function () {
                                         top: (860 + UIConfig.offsetH - 50) * ratio,
                                         width: 361 * ratio,
                                         height: 101 * ratio,
-                                        lineHeight: 40,
+                                        lineHeight: 101 * ratio,
                                         backgroundColor: '#ff6852',
                                         color: '#ffffff',
                                         textAlign: 'center',
@@ -1289,6 +1289,11 @@ var LoginManager = (function () {
         var _this = this;
         this.getUserInfo().then(function (data) {
             wxCenter.userInfo = data;
+            var openDataContext = wx.getOpenDataContext();
+            openDataContext.postMessage({
+                event: 'setInfo',
+                data: wxCenter.userInfo
+            });
             _this.login();
         });
     };
@@ -1395,6 +1400,14 @@ var RankLayer = (function (_super) {
             width: 647,
             height: 800
         });
+        var bg2 = new Bitmap({
+            source: 'bg-rank_png',
+            width: 647,
+            height: 134,
+            y: 900,
+            x: (UIConfig.stageW - 647) / 2
+        });
+        _this.addChild(bg2);
         var shape = new Bitmap({
             source: 'bg-rank_png',
             width: 647,
@@ -1413,10 +1426,10 @@ var RankLayer = (function (_super) {
         _this.scroll.y = 142;
         _this.scroll.horizontalScrollPolicy = 'off';
         _this.wrap.addChild(_this.scroll);
-        _this.createRank();
         _this.createMenus();
-        _this.changeCnt(0);
         _this.createMine(null, 0);
+        _this.createRank();
+        _this.changeCnt(0);
         EventManager.sub('updateRankMine', function (rank, score) {
             _this.createMine(rank, score);
         });
@@ -1427,17 +1440,11 @@ var RankLayer = (function (_super) {
         this.wrapMine.x = (UIConfig.stageW - 647) / 2;
         this.wrapMine.y = 900;
         this.addChild(this.wrapMine);
-        var bg = new Bitmap({
-            source: 'bg-rank_png',
-            width: 647,
-            height: 134
-        });
-        this.wrapMine.addChild(bg);
         if (rank == null) {
             return;
         }
         this.wrapSelfData.removeChildren();
-        this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: '', score: score }, 0);
+        this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: wxCenter.userInfo['avatarUrl'], score: score }, 0);
         this.wrapSelfData.visible = this.currentMenu == 1;
         this.wrapSelfData.y = 17;
         this.wrapMine.addChild(this.wrapSelfData);
@@ -1653,9 +1660,7 @@ var RankLayer = (function (_super) {
         this.wraps[0].visible = index == 0;
         var openDataContext = wx.getOpenDataContext();
         openDataContext.postMessage({
-            isDisplay: true,
-            text: 'hello',
-            year: (new Date()).getFullYear()
+            event: 'changeRank'
         });
     };
     return RankLayer;
@@ -1805,6 +1810,7 @@ var StartLayer = (function (_super) {
         });
         _this.btn_lookrank.y = 950 + UIConfig.offsetH;
         _this.btn_lookrank.x = (UIConfig.stageW) / 2;
+        _this.btn_lookrank.visible = false;
         _this.addChild(_this.btn_lookrank);
         _this.btn_lookrank.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
             UImanager.showRank();
@@ -1817,6 +1823,7 @@ var StartLayer = (function (_super) {
             width: _this.width,
             textAlign: 'center'
         });
+        txtAuthTip.visible = false;
         _this.addChild(txtAuthTip);
         EventManager.sub('togglePageAuth', function (flag) {
             _this.btn_start.visible = !flag;
@@ -2165,6 +2172,7 @@ var UIManager = (function () {
     UIManager.prototype.showRank = function () {
         this.layerRank = this.layerRank || new RankLayer();
         this.container.addChild(this.layerRank);
+        this.layerRank.changeCnt(0);
         LoginManager.getRank().then(function (e) {
             EventManager.pub('updateRank');
             EventManager.pub('updateRankMine', wxCenter.selfRank.sort, wxCenter.selfRank.score);
@@ -2511,6 +2519,7 @@ var SceneGame = (function (_super) {
     };
     SceneGame.prototype.startGame = function () {
         var _this = this;
+        LoginManager.startGame();
         this.clearTimer();
         this.timer = setInterval(function () {
             _this.enterFrame();
@@ -2520,10 +2529,11 @@ var SceneGame = (function (_super) {
             }
             else {
                 //游戏结束
-                var score = Math.abs(Math.floor(myCar.y));
+                var score = Util.getScore();
                 _this.gameOverInit();
                 var isNew = wxCenter.updateScore(score);
                 UImanager.showResult(score, isNew);
+                LoginManager.endGame(score);
             }
         }, 33);
     };
@@ -2607,7 +2617,7 @@ var SceneGame = (function (_super) {
     SceneGame.prototype.setProcess = function () {
         // this.zhen.rotation = (myCar.speedY / 60) * 135;
         this.timeBar_top.width = (this.daojishi / 1800) * 530;
-        this.distance.text = '' + Math.abs(Math.floor(myCar.y)) + 'M';
+        this.distance.text = '' + Util.getScore() + 'M';
     };
     SceneGame.prototype.checkOver = function () {
     };
@@ -3052,6 +3062,9 @@ var Util = (function () {
                 rej({ message: '网络错误，请重试！', code: 500 });
             }, _this);
         });
+    };
+    Util.getScore = function () {
+        return Math.abs(Math.floor(myCar.y / 10));
     };
     Util.formatFloat = function (num, len) {
         // var weishu = Math.pow(10,len)

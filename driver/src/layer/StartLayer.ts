@@ -50,6 +50,7 @@ class StartLayer extends egret.Sprite {
         })
         this.btn_lookrank.y = 950 + UIConfig.offsetH;
         this.btn_lookrank.x = (UIConfig.stageW) / 2;
+        this.btn_lookrank.visible = false;
         this.addChild(this.btn_lookrank)
 
         this.btn_lookrank.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
@@ -64,6 +65,7 @@ class StartLayer extends egret.Sprite {
             width: this.width,
             textAlign: 'center'
         })
+        txtAuthTip.visible = false;
         this.addChild(txtAuthTip);
 
         EventManager.sub('togglePageAuth', (flag) => {

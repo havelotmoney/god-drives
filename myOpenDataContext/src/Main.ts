@@ -5,7 +5,7 @@ class Main extends egret.DisplayObjectContainer {
     super();
     let self = this;
     wx.onMessage(data => {
-      if (data.isDisplay) {
+      if (data.event == 'changeRank') {
         //获取小游戏开放数据接口 --- 开始
         wx.getFriendCloudStorage({
           keyList: ['rank'],
@@ -21,8 +21,8 @@ class Main extends egret.DisplayObjectContainer {
           }
         });
         //监听消息 isDisplay
-      } else {
-        this.cancelGame();
+      } else if (data.event == 'setInfo') {
+        self.info = data.data;
       }
     });
 
@@ -50,7 +50,6 @@ class Main extends egret.DisplayObjectContainer {
     let wrap2 = new egret.Sprite;
     list = list.sort(this.sort);
     list.forEach((config, index) => {
-      console.log(JSON.parse(config['KVDataList'][0]['value']))
       let sp = this.renderItem({
         rank: index + 1,
         avatar: config.avatarUrl,
@@ -67,32 +66,28 @@ class Main extends egret.DisplayObjectContainer {
     scroll.height = stage.stageHeight - 154;
     scroll.y = 22;
     scroll.horizontalScrollPolicy = 'off';
-    console.log(scroll.width, scroll.height)
 
     this.wrap.addChild(scroll);
     scroll.setContent(wrap2);
 
     let infoMine = this.getMine(list)
-    console.log(infoMine);
-    let spMine = this.renderItem({ name: '3232', rank: 2, avatar: '', score: 22222222222 }, 0);
+    let spMine = this.renderItem({
+      name: infoMine['nickname'], rank: infoMine['rank'], avatar: infoMine['avatarUrl'], score: JSON.parse(infoMine['KVDataList'][0]['value'])['wxgame']['score']
+    }, 0);
+    spMine.visible = true;
     spMine.x = 53;
     spMine.y = 716;
     this.wrap.addChild(spMine);
   }
   private getMine(list: Array<Object>) {
-    let self = this;
-    wx.getUserInfo({
-      success(res) {
-        self.info = res.userInfo;
-        list.forEach(item => {
-          if (item['openid'] == self.info['openId']) {
-            return item;
-          }
-        })
-      },
-      fail(res) {
+    let target = {};
+    list.forEach((item, index) => {
+      if (item['nickname'] == this.info['nickName']) {
+        target = item;
+        target['rank'] = index + 1;
       }
     })
+    return target;
   }
   renderItem(item, index) {
     let stage: egret.Stage = egret.MainContext.instance.stage;

@@ -146,7 +146,7 @@ class LoginManager {
                     top: (860 + UIConfig.offsetH - 50) * ratio,
                     width: 361 * ratio,
                     height: 101 * ratio,
-                    lineHeight: 40,
+                    lineHeight: 101 * ratio,
                     backgroundColor: '#ff6852',
                     color: '#ffffff',
                     textAlign: 'center',
@@ -187,6 +187,11 @@ class LoginManager {
   static gameLogin() {
     this.getUserInfo().then(data => {
       wxCenter.userInfo = data;
+      let openDataContext = wx.getOpenDataContext();
+      openDataContext.postMessage({
+        event: 'setInfo',
+        data: wxCenter.userInfo
+      });
       this.login()
     })
   }

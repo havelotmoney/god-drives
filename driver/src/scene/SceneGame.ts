@@ -411,6 +411,7 @@ class SceneGame extends egret.DisplayObjectContainer {
   }
 
   startGame() {
+    LoginManager.startGame();
     this.clearTimer()
     this.timer = setInterval(() => {  //30帧一秒
       this.enterFrame();
@@ -419,10 +420,11 @@ class SceneGame extends egret.DisplayObjectContainer {
         this.setProcess();
       } else {
         //游戏结束
-        let score = Math.abs(Math.floor(myCar.y));
+        let score = Util.getScore();
         this.gameOverInit()
         let isNew = wxCenter.updateScore(score)
         UImanager.showResult(score, isNew)
+        LoginManager.endGame(score);
       }
     }, 33)
   }
@@ -505,7 +507,7 @@ class SceneGame extends egret.DisplayObjectContainer {
 
     // this.zhen.rotation = (myCar.speedY / 60) * 135;
     this.timeBar_top.width = (this.daojishi / 1800) * 530;
-    this.distance.text = '' + Math.abs(Math.floor(myCar.y)) + 'M';
+    this.distance.text = '' + Util.getScore() + 'M';
   }
 
   private checkOver() {

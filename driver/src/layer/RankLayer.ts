@@ -18,6 +18,14 @@ class RankLayer extends egret.DisplayObjectContainer {
       width: 647,
       height: 800
     })
+    let bg2 = new Bitmap({
+      source: 'bg-rank_png',
+      width: 647,
+      height: 134,
+      y: 900,
+      x: (UIConfig.stageW - 647) / 2
+    })
+    this.addChild(bg2);
     let shape = new Bitmap({
       source: 'bg-rank_png',
       width: 647,
@@ -38,10 +46,10 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.scroll.horizontalScrollPolicy = 'off';
     this.wrap.addChild(this.scroll)
 
-    this.createRank();
     this.createMenus();
-    this.changeCnt(0)
     this.createMine(null, 0)
+    this.createRank();
+    this.changeCnt(0)
 
     EventManager.sub('updateRankMine', (rank, score) => {
       this.createMine(rank, score)
@@ -52,17 +60,11 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.wrapMine.x = (UIConfig.stageW - 647) / 2
     this.wrapMine.y = 900;
     this.addChild(this.wrapMine);
-    let bg = new Bitmap({
-      source: 'bg-rank_png',
-      width: 647,
-      height: 134
-    })
-    this.wrapMine.addChild(bg);
     if (rank == null) {
       return;
     }
     this.wrapSelfData.removeChildren();
-    this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: '', score: score }, 0)
+    this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: wxCenter.userInfo['avatarUrl'], score: score }, 0)
     this.wrapSelfData.visible = this.currentMenu == 1;
     this.wrapSelfData.y = 17;
     this.wrapMine.addChild(this.wrapSelfData);
@@ -277,10 +279,7 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.wraps[0].visible = index == 0;
     let openDataContext = wx.getOpenDataContext();
     openDataContext.postMessage({
-      isDisplay: true,
-      text: 'hello',
-      year: (new Date()).getFullYear()
+      event: 'changeRank'
     });
-
   }
 }

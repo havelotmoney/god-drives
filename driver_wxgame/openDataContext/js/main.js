@@ -126,7 +126,7 @@ var Main = (function (_super) {
         _this.info = {};
         var self = _this;
         wx.onMessage(function (data) {
-            if (data.isDisplay) {
+            if (data.event == 'changeRank') {
                 //获取小游戏开放数据接口 --- 开始
                 wx.getFriendCloudStorage({
                     keyList: ['rank'],
@@ -142,8 +142,8 @@ var Main = (function (_super) {
                 });
                 //监听消息 isDisplay
             }
-            else {
-                _this.cancelGame();
+            else if (data.event == 'setInfo') {
+                self.info = data.data;
             }
         });
         //获取小游戏开放数据接口 --- 结束        
@@ -169,7 +169,6 @@ var Main = (function (_super) {
         var wrap2 = new egret.Sprite;
         list = list.sort(this.sort);
         list.forEach(function (config, index) {
-            console.log(JSON.parse(config['KVDataList'][0]['value']));
             var sp = _this.renderItem({
                 rank: index + 1,
                 avatar: config.avatarUrl,
@@ -185,30 +184,27 @@ var Main = (function (_super) {
         scroll.height = stage.stageHeight - 154;
         scroll.y = 22;
         scroll.horizontalScrollPolicy = 'off';
-        console.log(scroll.width, scroll.height);
         this.wrap.addChild(scroll);
         scroll.setContent(wrap2);
         var infoMine = this.getMine(list);
-        console.log(infoMine);
-        var spMine = this.renderItem({ name: '3232', rank: 2, avatar: '', score: 22222222222 }, 0);
+        var spMine = this.renderItem({
+            name: infoMine['nickname'], rank: infoMine['rank'], avatar: infoMine['avatarUrl'], score: JSON.parse(infoMine['KVDataList'][0]['value'])['wxgame']['score']
+        }, 0);
+        spMine.visible = true;
         spMine.x = 53;
         spMine.y = 716;
         this.wrap.addChild(spMine);
     };
     Main.prototype.getMine = function (list) {
-        var self = this;
-        wx.getUserInfo({
-            success: function (res) {
-                self.info = res.userInfo;
-                list.forEach(function (item) {
-                    if (item['openid'] == self.info['openId']) {
-                        return item;
-                    }
-                });
-            },
-            fail: function (res) {
+        var _this = this;
+        var target = {};
+        list.forEach(function (item, index) {
+            if (item['nickname'] == _this.info['nickName']) {
+                target = item;
+                target['rank'] = index + 1;
             }
         });
+        return target;
     };
     Main.prototype.renderItem = function (item, index) {
         var stage = egret.MainContext.instance.stage;

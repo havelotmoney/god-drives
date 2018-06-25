@@ -85,6 +85,9 @@ class Util {
 
 
   }
+  static getScore() {
+    return Math.abs(Math.floor(myCar.y / 10));
+  }
   static formatFloat(num, len) {
     // var weishu = Math.pow(10,len)
     // console.log(weishu)
