@@ -145,6 +145,8 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.addChild(btnBack);
     btnBack.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
       UImanager.hideRank()
+      UImanager.hideResult()
+      EventManager.pub('hideStartLayer')
     }, this);
     let btnAgain = new Button({
       default: 'btn-bg-red_png',
@@ -161,7 +163,8 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.addChild(btnAgain);
     btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
       UImanager.hideRank();
-      EventManager.pub('resetGame')
+      UImanager.hideResult();
+      // EventManager.pub('resetGame')
       EventManager.pub('startGame')
     }, this);
 
