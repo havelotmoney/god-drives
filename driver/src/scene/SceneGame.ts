@@ -43,7 +43,7 @@ class SceneGame extends egret.DisplayObjectContainer {
 
   private distance: BitmapText;
 
-  daojishi: number = 30 * 60;
+  daojishi: number = 30 * 10;
 
   //开始层
   startLayer: StartLayer;
@@ -71,7 +71,6 @@ class SceneGame extends egret.DisplayObjectContainer {
     this.bg.width = UIConfig.stageW;
     this.bg.height = UIConfig.stageH;
     this.addChild(this.bg);
-
 
     this.timeBar_btm = new Bitmap({
       source: 'bar-time-bule_png',
@@ -555,7 +554,7 @@ class SceneGame extends egret.DisplayObjectContainer {
     this.tipR.visible = false;
     this.tipHand.visible = false;
     this.tipHnadother.visible = false;
-    console.log(1111111111111)
+    // console.log(1111111111111)
     // this.startGame();
   }
   private fListen() {
@@ -580,7 +579,8 @@ class SceneGame extends egret.DisplayObjectContainer {
     });
 
     EventManager.sub('resetGame', () => {
-      this.init();
+      // this.init();
+      this.startinit();
       EventManager.pub('togglePageAuth', false);
     })
 
@@ -603,14 +603,22 @@ class SceneGame extends egret.DisplayObjectContainer {
     EventManager.sub('oppCrash', data => {
       oppCar.dispatchEventWith('crash', false, data)
     })
+
+    EventManager.sub('hideStartLayer', () => {
+      this.changeLayer(2);
+    })
+
   }
 
   changeLayer(type) {
     if (type == 1) {
       //移除开始遮罩
-      if (this.startLayer && this.contains(this.startLayer)) {
-        this.removeChild(this.startLayer)
-      }
+      // if (this.startLayer && this.contains(this.startLayer)) {
+      //   this.removeChild(this.startLayer)
+      // }
+      this.startLayer.visible = false;
+    } else {
+      this.startLayer.visible = true;
     }
   }
 

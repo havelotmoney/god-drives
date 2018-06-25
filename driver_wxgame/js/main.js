@@ -1520,6 +1520,8 @@ var RankLayer = (function (_super) {
         this.addChild(btnBack);
         btnBack.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
             UImanager.hideRank();
+            UImanager.hideResult();
+            EventManager.pub('hideStartLayer');
         }, this);
         var btnAgain = new Button({
             default: 'btn-bg-red_png',
@@ -2190,7 +2192,7 @@ var SceneGame = (function (_super) {
         _this.treePlantY = 0;
         _this.robotDir = 'left';
         _this.timer = null;
-        _this.daojishi = 30 * 60;
+        _this.daojishi = 30 * 10;
         var self = _this;
         _this.init();
         // this.initLayer();
@@ -2646,7 +2648,7 @@ var SceneGame = (function (_super) {
         this.tipR.visible = false;
         this.tipHand.visible = false;
         this.tipHnadother.visible = false;
-        console.log(1111111111111);
+        // console.log(1111111111111)
         // this.startGame();
     };
     SceneGame.prototype.fListen = function () {
@@ -2668,7 +2670,8 @@ var SceneGame = (function (_super) {
             _this.startGame();
         });
         EventManager.sub('resetGame', function () {
-            _this.init();
+            // this.init();
+            _this.startinit();
             EventManager.pub('togglePageAuth', false);
         });
         EventManager.sub('testCrash', function () {
@@ -2690,13 +2693,20 @@ var SceneGame = (function (_super) {
         EventManager.sub('oppCrash', function (data) {
             oppCar.dispatchEventWith('crash', false, data);
         });
+        EventManager.sub('hideStartLayer', function () {
+            _this.changeLayer(2);
+        });
     };
     SceneGame.prototype.changeLayer = function (type) {
         if (type == 1) {
             //移除开始遮罩
-            if (this.startLayer && this.contains(this.startLayer)) {
-                this.removeChild(this.startLayer);
-            }
+            // if (this.startLayer && this.contains(this.startLayer)) {
+            //   this.removeChild(this.startLayer)
+            // }
+            this.startLayer.visible = false;
+        }
+        else {
+            this.startLayer.visible = true;
         }
     };
     SceneGame.prototype.initStatus = function () {
