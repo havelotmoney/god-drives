@@ -163,7 +163,8 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.addChild(btnAgain);
     btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
       UImanager.hideRank();
-      EventManager.pub('resetGame')
+      UImanager.hideResult();
+      // EventManager.pub('resetGame')
       EventManager.pub('startGame')
     }, this);
 

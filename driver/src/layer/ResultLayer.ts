@@ -98,7 +98,7 @@ class ResultLayer extends egret.DisplayObjectContainer {
     this.addChild(btnAgain);
     btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
       EventManager.pub('startGame')
-      EventManager.pub('resetGame')
+      // EventManager.pub('resetGame')
       UImanager.hideResult()
     }, this);
 
