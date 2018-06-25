@@ -1,62 +1,11 @@
-const testRank = [
-  {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111,
-    avatar: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1717056030,451974468&fm=200&gp=0.jpg'
-  }, {
-    rank: 2,
-    name: 'bbb',
-    score: 1111
-  }, {
-    rank: 3,
-    name: 'dsdad',
-    score: 11
-  }, {
-    rank: 4,
-    name: 'adawdad',
-    score: 11
-  }, {
-    rank: 5,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }, {
-    rank: 1,
-    name: 'aaaaa',
-    score: 1111
-  }
-]
 class RankLayer extends egret.DisplayObjectContainer {
   private wrap: egret.Sprite;
   private scroll: egret.ScrollView;
   private wraps: Array<egret.Sprite> = [];
   private menus: Array<Button> = [];
   private wrapMine: egret.Sprite;
-  private wrapSelfData: egret.Sprite;
+  private wrapSelfData: egret.Sprite = new egret.Sprite;
+  private currentMenu = 0;
   constructor() {
     super();
     let mask = new Mask(.6);
@@ -89,12 +38,16 @@ class RankLayer extends egret.DisplayObjectContainer {
     this.scroll.horizontalScrollPolicy = 'off';
     this.wrap.addChild(this.scroll)
 
-    this.createMine()
     this.createRank();
     this.createMenus();
     this.changeCnt(0)
+    this.createMine(null, 0)
+
+    EventManager.sub('updateRankMine', (rank, score) => {
+      this.createMine(rank, score)
+    })
   }
-  createMine() {
+  createMine(rank, score) {
     this.wrapMine = new egret.Sprite();
     this.wrapMine.x = (UIConfig.stageW - 647) / 2
     this.wrapMine.y = 900;
@@ -105,7 +58,12 @@ class RankLayer extends egret.DisplayObjectContainer {
       height: 134
     })
     this.wrapMine.addChild(bg);
-    this.wrapSelfData = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0)
+    if (rank == null) {
+      return;
+    }
+    this.wrapSelfData.removeChildren();
+    this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: '', score: score }, 0)
+    this.wrapSelfData.visible = this.currentMenu == 1;
     this.wrapSelfData.y = 17;
     this.wrapMine.addChild(this.wrapSelfData);
   }
@@ -206,12 +164,20 @@ class RankLayer extends egret.DisplayObjectContainer {
       EventManager.pub('resetGame')
       EventManager.pub('startGame')
     }, this);
+
+    EventManager.sub('updateRank', () => {
+      this.renderRank(1)
+    });
   }
-  renderRank(index, list = testRank) {
-    this.wraps[index] = new egret.Sprite;
+  renderRank(index, list = wxCenter.rankList) {
+    this.wraps[index] = this.wraps[index] || new egret.Sprite;
     let wrap = this.wraps[index];
+    wrap.removeChildren();
     list.forEach((item, index) => {
-      let sp = this.renderItem(item, index);
+      console.log(item)
+      let sp = this.renderItem({
+        rank: item.sort, name: item.nickname, score: item.score, avatar: item.avatarUrl
+      }, index);
       wrap.addChild(sp);
     })
     this.scroll.setContent(this.wraps[1]);
@@ -300,6 +266,7 @@ class RankLayer extends egret.DisplayObjectContainer {
     return sp;
   }
   changeCnt(index) {
+    this.currentMenu = index;
     if (this.wrapSelfData) {
       this.wrapSelfData.visible = index == 1;
     }

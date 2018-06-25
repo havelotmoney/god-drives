@@ -289,6 +289,10 @@ class UIManager {
   showRank() {
     this.layerRank = this.layerRank || new RankLayer();
     this.container.addChild(this.layerRank);
+    LoginManager.getRank().then(e => {
+      EventManager.pub('updateRank')
+      EventManager.pub('updateRankMine', wxCenter.selfRank.sort, wxCenter.selfRank.score)
+    })
   }
   hideRank() {
     if (this.layerRank && this.layerRank.parent) {

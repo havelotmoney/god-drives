@@ -1093,13 +1093,24 @@ function GetQueryString(name) {
 var LoginManager = (function () {
     function LoginManager() {
     }
-    LoginManager.ajax = function (type, data) {
+    LoginManager.ajax = function (_a) {
+        var type = _a.type, data = _a.data, url = _a.url;
+        return Util.Ajax({
+            type: type,
+            data: data,
+            url: url
+        });
     };
-    LoginManager.sendMessage = function (type, data) {
+    LoginManager.sendMessage = function (_a) {
         var _this = this;
+        var type = _a.type, data = _a.data, url = _a.url;
         return new Promise(function (rsv, rej) {
             _this.checkAjax().then(function (e) {
-                _this.ajax(type, data);
+                _this.ajax({ type: type, data: data, url: url }).then(function (e) {
+                    rsv(e);
+                }).catch(function (e) {
+                    rej();
+                });
             });
         });
     };
@@ -1139,13 +1150,75 @@ var LoginManager = (function () {
             }
         });
     };
+    LoginManager.startGame = function () {
+        this.sendMessage({
+            url: '/gameplay/game/start',
+            type: 'get',
+            data: {
+                token: wxCenter.token
+            }
+        }).then(function (e) {
+            console.log(e);
+            wxCenter.lastGameId = e['result'];
+        });
+    };
+    LoginManager.getRank = function () {
+        return new Promise(function (rsv, rej) {
+            LoginManager.sendMessage({
+                url: '/gameplay/game/rank',
+                type: 'get',
+                data: {
+                    token: wxCenter.token,
+                    page: 0,
+                    pageSize: 20
+                }
+            }).then(function (e) {
+                wxCenter.rankList = e['result']['list'];
+                wxCenter.selfRank = e['result']['self'];
+                rsv();
+            }).catch(function (e) {
+                rej();
+            });
+        });
+    };
+    LoginManager.endGame = function (score) {
+        this.sendMessage({
+            url: "/gameplay/game/over/" + wxCenter.lastGameId,
+            type: 'get',
+            data: {
+                token: wxCenter.token,
+                score: score
+            }
+        }).then(function (e) {
+            console.log(e);
+        });
+    };
     LoginManager.login = function () {
         return new Promise(function (rsv, rej) {
             wx.login({
                 success: function (res) {
                     console.log(res.code);
                     LoginManager.code = res.code;
-                    rsv();
+                    var userInfo = wxCenter.userInfo;
+                    Util.Ajax({
+                        type: 'post',
+                        url: '/gameplay/users/login',
+                        data: {
+                            "avatarUrl": userInfo['avatarUrl'],
+                            "city": userInfo['city'],
+                            "code": LoginManager.code,
+                            "country": userInfo['country'],
+                            "device": "",
+                            "gender": userInfo['gender'],
+                            "nickName": userInfo['nickName'],
+                            "province": userInfo['province'],
+                            "registerIp": "",
+                            "type": 1000 //类型1000小程序
+                        }
+                    }).then(function (e) {
+                        wxCenter.token = e['result']['token'];
+                        rsv();
+                    });
                 },
                 fail: function (res) {
                     rej();
@@ -1191,6 +1264,7 @@ var LoginManager = (function () {
                                         rsv(res.userInfo);
                                     }
                                     else {
+                                        rej();
                                     }
                                 });
                             }
@@ -1199,11 +1273,11 @@ var LoginManager = (function () {
                     else {
                         wx.getUserInfo({
                             success: function (res) {
-                                console.log('success', res.userInfo);
+                                rsv(res.userInfo);
                                 EventManager.pub('togglePageAuth', false);
                             },
                             fail: function (res) {
-                                // reject(res)
+                                rej();
                             }
                         });
                     }
@@ -1293,68 +1367,25 @@ var wxCenter = (function () {
     };
     wxCenter.bestScore = 0;
     wxCenter.userInfo = {};
+    wxCenter.token = '';
+    wxCenter.lastGameId = 0;
+    wxCenter.rankList = [];
+    wxCenter.selfRank = {
+        sort: 0,
+        score: 0
+    };
     return wxCenter;
 }());
 __reflect(wxCenter.prototype, "wxCenter");
 window['wxCenter'] = wxCenter;
-var testRank = [
-    {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111,
-        avatar: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1717056030,451974468&fm=200&gp=0.jpg'
-    }, {
-        rank: 2,
-        name: 'bbb',
-        score: 1111
-    }, {
-        rank: 3,
-        name: 'dsdad',
-        score: 11
-    }, {
-        rank: 4,
-        name: 'adawdad',
-        score: 11
-    }, {
-        rank: 5,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }
-];
 var RankLayer = (function (_super) {
     __extends(RankLayer, _super);
     function RankLayer() {
         var _this = _super.call(this) || this;
         _this.wraps = [];
         _this.menus = [];
+        _this.wrapSelfData = new egret.Sprite;
+        _this.currentMenu = 0;
         var mask = new Mask(.6);
         _this.addChild(mask);
         _this.wrap = new egret.Sprite;
@@ -1382,13 +1413,16 @@ var RankLayer = (function (_super) {
         _this.scroll.y = 142;
         _this.scroll.horizontalScrollPolicy = 'off';
         _this.wrap.addChild(_this.scroll);
-        _this.createMine();
         _this.createRank();
         _this.createMenus();
         _this.changeCnt(0);
+        _this.createMine(null, 0);
+        EventManager.sub('updateRankMine', function (rank, score) {
+            _this.createMine(rank, score);
+        });
         return _this;
     }
-    RankLayer.prototype.createMine = function () {
+    RankLayer.prototype.createMine = function (rank, score) {
         this.wrapMine = new egret.Sprite();
         this.wrapMine.x = (UIConfig.stageW - 647) / 2;
         this.wrapMine.y = 900;
@@ -1399,7 +1433,12 @@ var RankLayer = (function (_super) {
             height: 134
         });
         this.wrapMine.addChild(bg);
-        this.wrapSelfData = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0);
+        if (rank == null) {
+            return;
+        }
+        this.wrapSelfData.removeChildren();
+        this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: '', score: score }, 0);
+        this.wrapSelfData.visible = this.currentMenu == 1;
         this.wrapSelfData.y = 17;
         this.wrapMine.addChild(this.wrapSelfData);
     };
@@ -1446,6 +1485,7 @@ var RankLayer = (function (_super) {
         wrapMenu.dispatchEventWith('changeMenu', false, 0);
     };
     RankLayer.prototype.createRank = function () {
+        var _this = this;
         var spTitle = new egret.Sprite;
         this.wrap.addChild(spTitle);
         spTitle.x = 50;
@@ -1499,14 +1539,21 @@ var RankLayer = (function (_super) {
             EventManager.pub('resetGame');
             EventManager.pub('startGame');
         }, this);
+        EventManager.sub('updateRank', function () {
+            _this.renderRank(1);
+        });
     };
     RankLayer.prototype.renderRank = function (index, list) {
         var _this = this;
-        if (list === void 0) { list = testRank; }
-        this.wraps[index] = new egret.Sprite;
+        if (list === void 0) { list = wxCenter.rankList; }
+        this.wraps[index] = this.wraps[index] || new egret.Sprite;
         var wrap = this.wraps[index];
+        wrap.removeChildren();
         list.forEach(function (item, index) {
-            var sp = _this.renderItem(item, index);
+            console.log(item);
+            var sp = _this.renderItem({
+                rank: item.sort, name: item.nickname, score: item.score, avatar: item.avatarUrl
+            }, index);
             wrap.addChild(sp);
         });
         this.scroll.setContent(this.wraps[1]);
@@ -1595,6 +1642,7 @@ var RankLayer = (function (_super) {
         return sp;
     };
     RankLayer.prototype.changeCnt = function (index) {
+        this.currentMenu = index;
         if (this.wrapSelfData) {
             this.wrapSelfData.visible = index == 1;
         }
@@ -2113,6 +2161,10 @@ var UIManager = (function () {
     UIManager.prototype.showRank = function () {
         this.layerRank = this.layerRank || new RankLayer();
         this.container.addChild(this.layerRank);
+        LoginManager.getRank().then(function (e) {
+            EventManager.pub('updateRank');
+            EventManager.pub('updateRankMine', wxCenter.selfRank.sort, wxCenter.selfRank.score);
+        });
     };
     UIManager.prototype.hideRank = function () {
         if (this.layerRank && this.layerRank.parent) {
@@ -2917,6 +2969,78 @@ __reflect(SceneGame.prototype, "SceneGame");
 var Util = (function () {
     function Util() {
     }
+    Util.parseData = function (obj) {
+        obj = obj || {};
+        var str = '';
+        for (var key in obj) {
+            if (typeof obj[key] == 'object') {
+                obj[key] = JSON.stringify(obj[key]);
+            }
+            str += key + "=" + obj[key];
+            str += '&';
+        }
+        return str ? str.slice(0, -1) : str;
+    };
+    Util.Ajax = function (obj) {
+        var _this = this;
+        obj.data = obj.data || obj.params || {};
+        obj.type = obj.type || obj.method || 'get';
+        obj.fail = obj.fail || function () { };
+        obj.success = obj.success || function () { };
+        // 将类型处理至小写
+        obj.type = obj.type.toLowerCase();
+        obj.method && (obj.method.toLowerCase());
+        obj.sendType && (obj.sendType.toLowerCase());
+        var method = (obj.type == 'post') ? egret.HttpMethod.POST : egret.HttpMethod.GET;
+        var sendType = obj.sendType || obj.type;
+        var url = '';
+        if (obj.url.indexOf('http') > -1) {
+            url = obj.url;
+        }
+        else {
+            url = Util.host + obj.url;
+        }
+        if (sendType == 'get') {
+            url += "?" + Util.parseData(obj.data);
+        }
+        else if (sendType == 'post') {
+        }
+        var request = new egret.HttpRequest();
+        request.responseType = egret.HttpResponseType.TEXT;
+        request.open("" + url, method);
+        request.setRequestHeader('Accept', 'application/json, text/plain,*/*');
+        // request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        if (obj.headers) {
+            if (obj.headers['Content-Type'] != undefined) {
+                request.setRequestHeader('Content-Type', obj.headers['Content-Type']);
+            }
+        }
+        if (sendType == 'get') {
+            request.send();
+        }
+        else {
+            request.send(obj.data);
+        }
+        return new Promise(function (rsv, rej) {
+            request.once(egret.Event.COMPLETE, function (event) {
+                var request = event.currentTarget;
+                var data = JSON.parse(request.response);
+                if (data.code == 1001) {
+                    obj.success(data['data']);
+                    rsv(data);
+                }
+                else {
+                    obj.fail(data);
+                    rej(data);
+                    console.log(data, '请求返回错误', url);
+                }
+            }, _this);
+            request.once(egret.IOErrorEvent.IO_ERROR, function (event) {
+                obj.fail({ message: '网络错误，请重试！', code: 500 });
+                rej({ message: '网络错误，请重试！', code: 500 });
+            }, _this);
+        });
+    };
     Util.formatFloat = function (num, len) {
         // var weishu = Math.pow(10,len)
         // console.log(weishu)
@@ -2938,6 +3062,7 @@ var Util = (function () {
         var num = Min + Math.round(Rand * Range); //四舍五入
         return num;
     };
+    Util.host = 'https://xcx.genghaojia.me';
     return Util;
 }());
 __reflect(Util.prototype, "Util");

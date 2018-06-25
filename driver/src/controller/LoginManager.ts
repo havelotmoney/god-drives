@@ -1,12 +1,20 @@
 class LoginManager {
   static code = ''
-  static ajax(type, data) {
-
+  static ajax({type, data, url}) {
+    return Util.Ajax({
+      type: type,
+      data: data,
+      url: url
+    })
   }
-  static sendMessage(type, data) {
+  static sendMessage({type, data, url}) {
     return new Promise((rsv, rej) => {
       this.checkAjax().then(e => {
-        this.ajax(type, data)
+        this.ajax({ type, data, url }).then(e => {
+          rsv(e)
+        }).catch(e => {
+          rej()
+        })
       })
     })
   }
@@ -43,13 +51,75 @@ class LoginManager {
       }
     })
   }
+  static startGame() {
+    this.sendMessage({
+      url: '/gameplay/game/start',
+      type: 'get',
+      data: {
+        token: wxCenter.token
+      }
+    }).then(e => {
+      console.log(e)
+      wxCenter.lastGameId = e['result'];
+    })
+  }
+  static getRank() {
+    return new Promise((rsv, rej) => {
+      LoginManager.sendMessage({
+        url: '/gameplay/game/rank',
+        type: 'get',
+        data: {
+          token: wxCenter.token,
+          page: 0,
+          pageSize: 20
+        }
+      }).then(e => {
+        wxCenter.rankList = e['result']['list']
+        wxCenter.selfRank = e['result']['self']
+        rsv()
+      }).catch(e => {
+        rej();
+      })
+    })
+  }
+  static endGame(score) {
+    this.sendMessage({
+      url: `/gameplay/game/over/${wxCenter.lastGameId}`,
+      type: 'get',
+      data: {
+        token: wxCenter.token,
+        score: score
+      }
+    }).then(e => {
+      console.log(e)
+    })
+  }
   static login() {
     return new Promise((rsv, rej) => {
       wx.login({
         success(res) {
           console.log(res.code)
           LoginManager.code = res.code;
-          rsv()
+          let userInfo = wxCenter.userInfo;
+          Util.Ajax({
+            type: 'post',
+            url: '/gameplay/users/login',
+            data: {
+              "avatarUrl": userInfo['avatarUrl'],
+              "city": userInfo['city'],
+              "code": LoginManager.code, //code
+              "country": userInfo['country'], //国家
+              "device": "", //设备信息
+              "gender": userInfo['gender'], //性别
+              "nickName": userInfo['nickName'], //昵称
+              "province": userInfo['province'], //省份
+              "registerIp": "", //注册ip
+              "type": 1000 //类型1000小程序
+            }
+          }).then(e => {
+            wxCenter.token = e['result']['token']
+            rsv()
+          })
         },
         fail(res) {
           rej()
@@ -94,6 +164,7 @@ class LoginManager {
                     EventManager.pub('togglePageAuth', false)
                     rsv(res.userInfo)
                   } else {
+                    rej();
                   }
                 })
               }
@@ -101,11 +172,11 @@ class LoginManager {
           } else {
             wx.getUserInfo({
               success(res) {
-                console.log('success', res.userInfo)
+                rsv(res.userInfo)
                 EventManager.pub('togglePageAuth', false)
               },
               fail(res) {
-                // reject(res)
+                rej()
               }
             })
           }
