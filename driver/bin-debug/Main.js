@@ -19,7 +19,7 @@ var Main = (function (_super) {
         //初始化Resource资源加载库
         //initiate Resource loading library
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
-        RES.loadConfig("resource/default.res.json", "resource/");
+        RES.loadConfig("https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource/default.res.json", "https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource/");
     };
     /**
      * 配置文件加载完成,开始预加载preload资源组。
@@ -43,8 +43,8 @@ var Main = (function (_super) {
             RES.removeEventListener(RES.ResourceEvent.GROUP_LOAD_ERROR, this.onResourceLoadError, this);
             RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
             RES.removeEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
-            LoginManager.login();
             this.createGameScene();
+            LoginManager.gameLogin();
             EventManager.pub('tiki/init');
         }
     };

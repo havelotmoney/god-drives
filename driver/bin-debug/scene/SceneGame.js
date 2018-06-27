@@ -22,7 +22,7 @@ var SceneGame = (function (_super) {
         _this.treePlantY = 0;
         _this.robotDir = 'left';
         _this.timer = null;
-        _this.daojishi = 30 * 60;
+        _this.daojishi = 30 * 10;
         var self = _this;
         _this.init();
         // this.initLayer();
@@ -339,6 +339,7 @@ var SceneGame = (function (_super) {
     };
     SceneGame.prototype.startGame = function () {
         var _this = this;
+        LoginManager.startGame();
         this.clearTimer();
         this.timer = setInterval(function () {
             _this.enterFrame();
@@ -348,10 +349,11 @@ var SceneGame = (function (_super) {
             }
             else {
                 //游戏结束
-                var score = Math.abs(Math.floor(myCar.y));
+                var score = Util.getScore();
                 _this.gameOverInit();
-                UImanager.showResult(score);
-                wxCenter.updateScore(score);
+                var isNew = wxCenter.updateScore(score);
+                UImanager.showResult(score, isNew);
+                LoginManager.endGame(score);
             }
         }, 33);
     };
@@ -435,7 +437,7 @@ var SceneGame = (function (_super) {
     SceneGame.prototype.setProcess = function () {
         // this.zhen.rotation = (myCar.speedY / 60) * 135;
         this.timeBar_top.width = (this.daojishi / 1800) * 530;
-        this.distance.text = '' + Math.abs(Math.floor(myCar.y)) + 'M';
+        this.distance.text = '' + Util.getScore() + 'M';
     };
     SceneGame.prototype.checkOver = function () {
     };
@@ -478,7 +480,7 @@ var SceneGame = (function (_super) {
         this.tipR.visible = false;
         this.tipHand.visible = false;
         this.tipHnadother.visible = false;
-        console.log(1111111111111);
+        // console.log(1111111111111)
         // this.startGame();
     };
     SceneGame.prototype.fListen = function () {
@@ -500,7 +502,9 @@ var SceneGame = (function (_super) {
             _this.startGame();
         });
         EventManager.sub('resetGame', function () {
-            _this.init();
+            // this.init();
+            _this.startinit();
+            EventManager.pub('togglePageAuth', false);
         });
         EventManager.sub('testCrash', function () {
             if (myCar.x <= 180 + 73 / 2 + UIConfig.offsetW) {
@@ -521,13 +525,20 @@ var SceneGame = (function (_super) {
         EventManager.sub('oppCrash', function (data) {
             oppCar.dispatchEventWith('crash', false, data);
         });
+        EventManager.sub('hideStartLayer', function () {
+            _this.changeLayer(2);
+        });
     };
     SceneGame.prototype.changeLayer = function (type) {
         if (type == 1) {
             //移除开始遮罩
-            if (this.startLayer && this.contains(this.startLayer)) {
-                this.removeChild(this.startLayer);
-            }
+            // if (this.startLayer && this.contains(this.startLayer)) {
+            //   this.removeChild(this.startLayer)
+            // }
+            this.startLayer.visible = false;
+        }
+        else {
+            this.startLayer.visible = true;
         }
     };
     SceneGame.prototype.initStatus = function () {

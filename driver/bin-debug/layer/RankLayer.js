@@ -8,64 +8,14 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
-var testRank = [
-    {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111,
-        avatar: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1717056030,451974468&fm=200&gp=0.jpg'
-    }, {
-        rank: 2,
-        name: 'bbb',
-        score: 1111
-    }, {
-        rank: 3,
-        name: 'dsdad',
-        score: 11
-    }, {
-        rank: 4,
-        name: 'adawdad',
-        score: 11
-    }, {
-        rank: 5,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }, {
-        rank: 1,
-        name: 'aaaaa',
-        score: 1111
-    }
-];
 var RankLayer = (function (_super) {
     __extends(RankLayer, _super);
     function RankLayer() {
         var _this = _super.call(this) || this;
         _this.wraps = [];
         _this.menus = [];
+        _this.wrapSelfData = new egret.Sprite;
+        _this.currentMenu = 0;
         var mask = new Mask(.6);
         _this.addChild(mask);
         _this.wrap = new egret.Sprite;
@@ -75,6 +25,14 @@ var RankLayer = (function (_super) {
             width: 647,
             height: 800
         });
+        var bg2 = new Bitmap({
+            source: 'bg-rank_png',
+            width: 647,
+            height: 134,
+            y: 900,
+            x: (UIConfig.stageW - 647) / 2
+        });
+        _this.addChild(bg2);
         var shape = new Bitmap({
             source: 'bg-rank_png',
             width: 647,
@@ -93,25 +51,28 @@ var RankLayer = (function (_super) {
         _this.scroll.y = 142;
         _this.scroll.horizontalScrollPolicy = 'off';
         _this.wrap.addChild(_this.scroll);
-        _this.createRank();
         _this.createMenus();
-        _this.createMine();
+        _this.createMine(null, 0);
+        _this.createRank();
+        _this.changeCnt(0);
+        EventManager.sub('updateRankMine', function (rank, score) {
+            _this.createMine(rank, score);
+        });
         return _this;
     }
-    RankLayer.prototype.createMine = function () {
+    RankLayer.prototype.createMine = function (rank, score) {
         this.wrapMine = new egret.Sprite();
         this.wrapMine.x = (UIConfig.stageW - 647) / 2;
         this.wrapMine.y = 900;
         this.addChild(this.wrapMine);
-        var bg = new Bitmap({
-            source: 'bg-rank_png',
-            width: 647,
-            height: 134
-        });
-        this.wrapMine.addChild(bg);
-        var sp = this.renderItem({ name: '222', rank: 1, avatar: '', score: 222 }, 0);
-        sp.y = 17;
-        this.wrapMine.addChild(sp);
+        if (rank == null) {
+            return;
+        }
+        this.wrapSelfData.removeChildren();
+        this.wrapSelfData = this.renderItem({ name: wxCenter.userInfo['nickName'], rank: '' + rank, avatar: wxCenter.userInfo['avatarUrl'], score: score }, 0);
+        this.wrapSelfData.visible = this.currentMenu == 1;
+        this.wrapSelfData.y = 17;
+        this.wrapMine.addChild(this.wrapSelfData);
     };
     RankLayer.prototype.createMenus = function () {
         var _this = this;
@@ -156,6 +117,7 @@ var RankLayer = (function (_super) {
         wrapMenu.dispatchEventWith('changeMenu', false, 0);
     };
     RankLayer.prototype.createRank = function () {
+        var _this = this;
         var spTitle = new egret.Sprite;
         this.wrap.addChild(spTitle);
         spTitle.x = 50;
@@ -188,6 +150,11 @@ var RankLayer = (function (_super) {
         });
         btnBack.addChild(txtBack);
         this.addChild(btnBack);
+        btnBack.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            UImanager.hideRank();
+            UImanager.hideResult();
+            EventManager.pub('hideStartLayer');
+        }, this);
         var btnAgain = new Button({
             default: 'btn-bg-red_png',
             x: UIConfig.stageW / 2,
@@ -202,19 +169,29 @@ var RankLayer = (function (_super) {
         btnAgain.addChild(txtAgain);
         this.addChild(btnAgain);
         btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
-            EventManager.pub('resetGame');
             UImanager.hideRank();
+            UImanager.hideResult();
+            // EventManager.pub('resetGame')
+            EventManager.pub('startGame');
         }, this);
+        EventManager.sub('updateRank', function () {
+            _this.renderRank(1);
+        });
     };
     RankLayer.prototype.renderRank = function (index, list) {
         var _this = this;
-        if (list === void 0) { list = testRank; }
-        this.wraps[index] = new egret.Sprite;
+        if (list === void 0) { list = wxCenter.rankList; }
+        this.wraps[index] = this.wraps[index] || new egret.Sprite;
         var wrap = this.wraps[index];
+        wrap.removeChildren();
         list.forEach(function (item, index) {
-            var sp = _this.renderItem(item, index);
+            console.log(item);
+            var sp = _this.renderItem({
+                rank: item.sort, name: item.nickname, score: item.score, avatar: item.avatarUrl
+            }, index);
             wrap.addChild(sp);
         });
+        this.scroll.setContent(this.wraps[1]);
     };
     RankLayer.prototype.renderFriend = function () {
         this.wraps[0] = new egret.Sprite;
@@ -223,10 +200,18 @@ var RankLayer = (function (_super) {
         var texture = new egret.Texture();
         texture._setBitmapData(bitmapdata);
         var bitmap = new egret.Bitmap(texture);
+        bitmap.fillMode = egret.BitmapFillMode.SCALE;
         var ratio = this.wrap.width / bitmap.width;
         bitmap.width *= ratio;
         bitmap.height *= ratio;
         this.wraps[0].addChild(bitmap);
+        egret.startTick(function (timeStarmp) {
+            egret.WebGLUtils.deleteWebGLTexture(bitmapdata.webGLTexture);
+            bitmapdata.webGLTexture = null;
+            return false;
+        }, this);
+        this.addChild(this.wraps[0]);
+        this.wraps[0].y = 202;
     };
     RankLayer.prototype.renderItem = function (item, index) {
         var sp = new egret.Sprite;
@@ -247,14 +232,16 @@ var RankLayer = (function (_super) {
             sp.addChild(spRank);
         }
         else {
-            var spRank = new BitmapText({
-                source: 'fnt-rankNum_fnt',
+            var spRank = new TextField({
+                bold: true,
+                size: 40,
                 x: 45,
                 width: 57,
                 textAlign: 'center',
                 height: 100,
                 verticalAlign: 'middle',
-                text: item.rank.toString()
+                text: item.rank.toString(),
+                color: 0x000000
             });
             sp.addChild(spRank);
         }
@@ -275,26 +262,31 @@ var RankLayer = (function (_super) {
             verticalAlign: 'middle'
         });
         sp.addChild(spName);
-        var spScore = new BitmapText({
-            source: 'fnt_rank_fnt',
+        var spScore = new TextField({
+            size: 40,
+            color: 0x000000,
             text: item['score'].toString(),
             x: 430,
-            width: 220 / .5,
+            width: 220,
             textAlign: 'center',
-            y: 50
+            height: 100,
+            verticalAlign: 'middle',
+            bold: true
         });
-        spScore.scaleX = spScore.scaleY = .5;
-        spScore.anchorOffsetY = spScore.height / 2;
         sp.addChild(spScore);
         return sp;
     };
     RankLayer.prototype.changeCnt = function (index) {
-        // let wrap = this.wraps[index];
-        // if (wrap) {
-        //   this.wrap.addChild(this.wraps[index]);
-        //   wrap.y = 142;
-        // }
-        this.scroll.setContent(this.wraps[index]);
+        this.currentMenu = index;
+        if (this.wrapSelfData) {
+            this.wrapSelfData.visible = index == 1;
+        }
+        this.scroll.visible = index == 1;
+        this.wraps[0].visible = index == 0;
+        var openDataContext = wx.getOpenDataContext();
+        openDataContext.postMessage({
+            event: 'changeRank'
+        });
     };
     return RankLayer;
 }(egret.DisplayObjectContainer));

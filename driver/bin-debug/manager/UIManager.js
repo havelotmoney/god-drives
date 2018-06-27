@@ -302,9 +302,10 @@ var UIManager = (function () {
         var mc = new egret.MovieClip(mcDataFactory.generateMovieClipData(sourceName));
         return mc;
     };
-    UIManager.prototype.showResult = function (score) {
+    UIManager.prototype.showResult = function (score, isNew) {
+        if (isNew === void 0) { isNew = false; }
         this.layerResult = this.layerResult || new ResultLayer();
-        this.layerResult.setScore(score);
+        this.layerResult.setScore(score, isNew);
         this.container.addChild(this.layerResult);
     };
     UIManager.prototype.hideResult = function () {
@@ -315,6 +316,11 @@ var UIManager = (function () {
     UIManager.prototype.showRank = function () {
         this.layerRank = this.layerRank || new RankLayer();
         this.container.addChild(this.layerRank);
+        this.layerRank.changeCnt(0);
+        LoginManager.getRank().then(function (e) {
+            EventManager.pub('updateRank');
+            EventManager.pub('updateRankMine', wxCenter.selfRank.sort, wxCenter.selfRank.score);
+        });
     };
     UIManager.prototype.hideRank = function () {
         if (this.layerRank && this.layerRank.parent) {

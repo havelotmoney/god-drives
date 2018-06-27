@@ -137,13 +137,14 @@ class LoginManager {
                 let h = res.screenHeight;
                 let w = res.screenWidth;
                 let ratio = w / h > 750 / 1334 ? h / 1334 : w / 750;
+                let stage: egret.Stage = egret.MainContext.instance.stage
                 EventManager.pub('togglePageAuth', true)
                 let button = wx.createUserInfoButton({
                   type: 'text',
                   text: '登陆',
                   style: {
-                    left: (UIConfig.stageW - 361) * ratio / 2,
-                    top: (860 + UIConfig.offsetH - 50) * ratio,
+                    left: (stage.stageWidth - 361) * ratio / 2,
+                    top: 810 * ratio,
                     width: 361 * ratio,
                     height: 101 * ratio,
                     lineHeight: 101 * ratio,

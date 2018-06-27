@@ -98,7 +98,8 @@ var ResultLayer = (function (_super) {
         btnAgain.addChild(txtAgain);
         _this.addChild(btnAgain);
         btnAgain.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
-            EventManager.pub('resetGame');
+            EventManager.pub('startGame');
+            // EventManager.pub('resetGame')
             UImanager.hideResult();
         }, _this);
         return _this;

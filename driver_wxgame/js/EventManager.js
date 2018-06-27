@@ -1,1 +1,47 @@
-var egret=window.egret,EventManager={_listeners:{},guid:1,sub:function(e,t){return"undefined"==typeof this._listeners[e]&&(this._listeners[e]=[]),"function"==typeof t&&(this._listeners[e].push(t),t.guid=this.guid,this.guid++),this},pub:function(e){var t=this._listeners[e],i=Array.prototype.slice.call(arguments,1);if(t instanceof Array)for(var n=0,s=t.length;s>n;n++)"function"==typeof t[n]&&t[n].apply(this,i);return this},unsub:function(e,t){var i=this._listeners[e];if("string"==typeof e&&i instanceof Array)if("function"==typeof t){for(var n=0,s=i.length;s>n;n+=1)if(i[n].guid===t.guid){this._listeners[e].splice(n,1);break}}else delete this._listeners[e];return this}};window.EventManager=EventManager;
+var egret = window.egret;// 发布订阅模块
+var EventManager = {
+    _listeners: {},
+    guid: 1,
+    sub: function (type, fn) {
+        if (typeof this._listeners[type] === "undefined") {
+            this._listeners[type] = [];
+        }
+        if (typeof fn === "function") {
+            this._listeners[type].push(fn);
+            fn.guid = this.guid;
+            this.guid++;
+        }
+        return this;
+    },
+    pub: function (type, data) {
+        var arrayEvent = this._listeners[type];
+        var handlerArgs = Array.prototype.slice.call(arguments, 1);
+        if (arrayEvent instanceof Array) {
+            for (var i = 0, length = arrayEvent.length; i < length; i++) {
+                if (typeof arrayEvent[i] === 'function') {
+                    arrayEvent[i].apply(this, handlerArgs);
+                }
+            }
+        }
+        return this;
+    },
+    unsub: function (type, fn) {
+        var arrayEvent = this._listeners[type];
+        if (typeof type === "string" && arrayEvent instanceof Array) {
+            if (typeof fn === "function") {
+                for (var i = 0, length = arrayEvent.length; i < length; i += 1) {
+                    if (arrayEvent[i].guid === fn.guid) {
+                        // 通过guid识别function
+                        this._listeners[type].splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            else {
+                delete this._listeners[type];
+            }
+        }
+        return this;
+    }
+};
+;window.EventManager = EventManager;

@@ -10,7 +10,7 @@ class Main extends egret.DisplayObjectContainer {
     //初始化Resource资源加载库
     //initiate Resource loading library
     RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
-    RES.loadConfig("resource/default.res.json", "resource/");
+    RES.loadConfig('https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish/default.res.json?v=' + new Date().getTime(), "https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish/");
   }
 
   /**
@@ -39,7 +39,6 @@ class Main extends egret.DisplayObjectContainer {
       RES.removeEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
       this.createGameScene();
       LoginManager.gameLogin()
-      EventManager.pub('tiki/init');
     }
   }
 

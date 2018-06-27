@@ -47,10 +47,26 @@ var StartLayer = (function (_super) {
         });
         _this.btn_lookrank.y = 950 + UIConfig.offsetH;
         _this.btn_lookrank.x = (UIConfig.stageW) / 2;
+        _this.btn_lookrank.visible = false;
         _this.addChild(_this.btn_lookrank);
         _this.btn_lookrank.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
             UImanager.showRank();
         }, _this);
+        var txtAuthTip = new TextField({
+            size: 28,
+            color: 0xffffff,
+            text: '登陆后才可以进行游戏哦~',
+            y: 950 - 13 + UIConfig.offsetH,
+            width: _this.width,
+            textAlign: 'center'
+        });
+        txtAuthTip.visible = false;
+        _this.addChild(txtAuthTip);
+        EventManager.sub('togglePageAuth', function (flag) {
+            _this.btn_start.visible = !flag;
+            _this.btn_lookrank.visible = !flag;
+            txtAuthTip.visible = flag;
+        });
         return _this;
     }
     return StartLayer;
