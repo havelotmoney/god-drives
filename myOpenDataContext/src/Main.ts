@@ -44,7 +44,7 @@ class Main extends egret.DisplayObjectContainer {
     this.stage.addChild(this.wrap)
     this.wrap.removeChildren();
     let wrap2 = new egret.Sprite;
-    list = list.sort(this.sort);
+    list = list.concat(list, list, list, list).sort(this.sort);
     list.forEach((config, index) => {
       let sp = this.renderItem({
         rank: index + 1,
@@ -52,15 +52,15 @@ class Main extends egret.DisplayObjectContainer {
         name: config.nickname,
         score: JSON.parse(config['KVDataList'][0]['value'])['wxgame']['score'] || 0
       }, index);
-      sp.y = index * 100;
+      sp.y = index * 90;
       sp.x = 50;
       wrap2.addChild(sp);
     })
 
-    wrap2.height = 100 * list.length;
+    wrap2.height = 90 * list.length;
     let scroll = new egret.ScrollView();
     scroll.width = stage.stageWidth;
-    scroll.height = 656;
+    scroll.height = 606;
     scroll.y = 22;
     scroll.horizontalScrollPolicy = 'off';
 
@@ -73,7 +73,7 @@ class Main extends egret.DisplayObjectContainer {
     }, 0);
     spMine.visible = true;
     spMine.x = 53;
-    spMine.y = 716;
+    spMine.y = 665;
     this.wrap.addChild(spMine);
   }
   private getMine(list: Array<Object>) {
@@ -87,21 +87,22 @@ class Main extends egret.DisplayObjectContainer {
     return target;
   }
   renderItem(item, index) {
+    let h = 90;
     let stage: egret.Stage = egret.MainContext.instance.stage;
     let sp = new egret.Sprite;
-    sp.y = 100 * index;
-    let bg = new Bitmap({
-      source: 'bg-yellow_png',
-      width: stage.stageWidth,
-      height: 100
-    })
+    sp.y = h * index;
+    let bg = new egret.Shape();
+    bg.graphics.beginFill(0xfff6df);
+    bg.graphics.drawRect(0, 0, stage.stageWidth * 10, h);
     sp.addChild(bg);
     bg.alpha = index % 2 == 0 ? 0 : 1;
     if (item.rank < 4) {
       let spRank = new ImageLoader({
         src: 'openDataContext/source/rank-icon' + item.rank + '.png',
-        x: 40,
-        y: 18
+        x: 44,
+        y: 16,
+        width: 53,
+        height: 60
       })
       sp.addChild(spRank);
     } else {
@@ -111,7 +112,7 @@ class Main extends egret.DisplayObjectContainer {
         x: 45,
         width: 57,
         textAlign: 'center',
-        height: 100,
+        height: h,
         verticalAlign: 'middle',
         text: item.rank.toString(),
         color: 0x000000
@@ -127,22 +128,22 @@ class Main extends egret.DisplayObjectContainer {
     })
     sp.addChild(avatar);
     let spName = new TextField({
-      size: 32,
+      size: 32 - 4,
       color: 0x000000,
       text: item['name'],
       x: 240,
-      height: 100,
+      height: h,
       verticalAlign: 'middle'
     })
     sp.addChild(spName);
     let spScore = new TextField({
-      size: 40,
+      size: 40 - 4,
       color: 0x000000,
       text: item['score'].toString(),
-      x: 430,
-      width: 220,
+      x: 410,
+      width: 200,
       textAlign: 'center',
-      height: 100,
+      height: h,
       verticalAlign: 'middle',
       bold: true
     })

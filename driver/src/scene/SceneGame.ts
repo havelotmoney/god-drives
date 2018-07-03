@@ -426,7 +426,7 @@ class SceneGame extends egret.DisplayObjectContainer {
         UImanager.showResult(score, isNew)
         LoginManager.endGame(score);
       }
-    }, 33)
+    }, 1000 / 30)
   }
 
   private enterFrame() {

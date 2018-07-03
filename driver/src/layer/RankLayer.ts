@@ -195,7 +195,7 @@ class RankLayer extends egret.DisplayObjectContainer {
     texture._setBitmapData(bitmapdata);
     let bitmap = new egret.Bitmap(texture);
     bitmap.fillMode = egret.BitmapFillMode.SCALE;
-    let ratio = this.wrap.width / bitmap.width;
+    let ratio = (this.wrap.width + 50) / bitmap.width;
     bitmap.width *= ratio;
     bitmap.height *= ratio;
     this.wraps[0].addChild(bitmap);
@@ -211,6 +211,7 @@ class RankLayer extends egret.DisplayObjectContainer {
   renderItem(item, index) {
     let sp = new egret.Sprite;
     sp.y = 100 * index;
+    sp.x = 10;
     let bg = new Bitmap({
       source: 'bg-yellow_png',
       width: this.wrap.width,

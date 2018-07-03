@@ -10,7 +10,7 @@ class Main extends egret.DisplayObjectContainer {
     //初始化Resource资源加载库
     //initiate Resource loading library
     RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
-    let host = 'https://card.genghaojia.me/xiaoyouxi'
+    let host = 'https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish'
     RES.loadConfig(host + '/default.res.json?v=' + new Date().getTime(), host + "/");
   }
 

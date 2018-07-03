@@ -93,7 +93,7 @@ var Main = (function (_super) {
         //初始化Resource资源加载库
         //initiate Resource loading library
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
-        var host = 'https://card.genghaojia.me/xiaoyouxi';
+        var host = 'https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish';
         RES.loadConfig(host + '/default.res.json?v=' + new Date().getTime(), host + "/");
     };
     /**
@@ -1572,7 +1572,7 @@ var RankLayer = (function (_super) {
         texture._setBitmapData(bitmapdata);
         var bitmap = new egret.Bitmap(texture);
         bitmap.fillMode = egret.BitmapFillMode.SCALE;
-        var ratio = this.wrap.width / bitmap.width;
+        var ratio = (this.wrap.width + 50) / bitmap.width;
         bitmap.width *= ratio;
         bitmap.height *= ratio;
         this.wraps[0].addChild(bitmap);
@@ -1587,6 +1587,7 @@ var RankLayer = (function (_super) {
     RankLayer.prototype.renderItem = function (item, index) {
         var sp = new egret.Sprite;
         sp.y = 100 * index;
+        sp.x = 10;
         var bg = new Bitmap({
             source: 'bg-yellow_png',
             width: this.wrap.width,
