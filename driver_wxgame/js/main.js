@@ -165,7 +165,7 @@ var Main = (function (_super) {
         UImanager = new UIManager(this);
         UImanager.to('game');
         this.gameBgm = RES.getRes("carbgm_mp3");
-        // this.soundChannel = this.gameBgm.play(0, -1);
+        this.soundChannel = this.gameBgm.play(0, -1);
         EventManager.sub('tiki/musicLoadSuc', function () {
             if (_this.soundChannel) {
                 _this.soundChannel.stop();
