@@ -2532,7 +2532,7 @@ var SceneGame = (function (_super) {
                 UImanager.showResult(score, isNew);
                 LoginManager.endGame(score);
             }
-        }, 33);
+        }, 1000 / 30);
     };
     SceneGame.prototype.enterFrame = function () {
         if (this.treePlantY - myCar.y > UIConfig.stageH) {
