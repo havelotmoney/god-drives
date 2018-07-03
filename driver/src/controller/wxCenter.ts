@@ -9,6 +9,7 @@ declare module wx {
   function getSystemInfo(obj)
 }
 class wxCenter {
+  static lastScore = 0;
   static bestScore = 0;
   static userInfo = {};
   static token = '';

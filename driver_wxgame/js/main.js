@@ -93,7 +93,8 @@ var Main = (function (_super) {
         //初始化Resource资源加载库
         //initiate Resource loading library
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
-        RES.loadConfig('https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish/default.res.json?v=' + new Date().getTime(), "https://kkcdn.imeete.com/kkddz-cdn/projectCar/resource_Publish/");
+        var host = 'https://card.genghaojia.me/xiaoyouxi';
+        RES.loadConfig(host + '/default.res.json?v=' + new Date().getTime(), host + "/");
     };
     /**
      * 配置文件加载完成,开始预加载preload资源组。
@@ -703,7 +704,7 @@ var Car = (function (_super) {
         // 减速时的加速度
         _this.a2 = 1;
         // 横向匀速移动，该值不改变
-        _this.speedX = 10;
+        _this.speedX = 16;
         _this.speedY = 0;
         // 暂存左右移动方向 0不动1左2右
         _this.dirX = 0;
@@ -1228,21 +1229,22 @@ var LoginManager = (function () {
                                 var w = res.screenWidth;
                                 var ratio = w / h > 750 / 1334 ? h / 1334 : w / 750;
                                 var stage = egret.MainContext.instance.stage;
+                                console.log(ratio, stage.stageWidth, stage.stageHeight);
                                 EventManager.pub('togglePageAuth', true);
                                 var button = wx.createUserInfoButton({
                                     type: 'text',
                                     text: '登陆',
                                     style: {
-                                        left: (stage.stageWidth - 361) * ratio / 2,
+                                        left: (w - 361 * ratio) / 2,
                                         top: 810 * ratio,
                                         width: 361 * ratio,
-                                        height: 101 * ratio,
-                                        lineHeight: 101 * ratio,
+                                        height: 100 * ratio,
+                                        lineHeight: 100 * ratio,
                                         backgroundColor: '#ff6852',
                                         color: '#ffffff',
                                         textAlign: 'center',
                                         fontSize: 16,
-                                        borderRadius: 400
+                                        borderRadius: 100 * ratio / 2
                                     }
                                 });
                                 EventManager.sub('togglePageAuth', function (flag) {
@@ -1281,6 +1283,7 @@ var LoginManager = (function () {
         var _this = this;
         this.getUserInfo().then(function (data) {
             wxCenter.userInfo = data;
+            wxCenter.getMyBest();
             var openDataContext = wx.getOpenDataContext();
             openDataContext.postMessage({
                 event: 'setInfo',
@@ -1362,6 +1365,7 @@ var wxCenter = (function () {
         });
         return true;
     };
+    wxCenter.lastScore = 0;
     wxCenter.bestScore = 0;
     wxCenter.userInfo = {};
     wxCenter.token = '';
@@ -1552,7 +1556,7 @@ var RankLayer = (function (_super) {
         var wrap = this.wraps[index];
         wrap.removeChildren();
         list.forEach(function (item, index) {
-            console.log(item);
+            // console.log(item)
             var sp = _this.renderItem({
                 rank: item.sort, name: item.nickname, score: item.score, avatar: item.avatarUrl
             }, index);
@@ -2515,9 +2519,9 @@ var SceneGame = (function (_super) {
         this.clearTimer();
         this.timer = setInterval(function () {
             _this.enterFrame();
+            _this.setProcess();
             if (_this.daojishi > 0) {
                 _this.daojishi--;
-                _this.setProcess();
             }
             else {
                 //游戏结束

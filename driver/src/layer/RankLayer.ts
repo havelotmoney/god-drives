@@ -179,7 +179,7 @@ class RankLayer extends egret.DisplayObjectContainer {
     let wrap = this.wraps[index];
     wrap.removeChildren();
     list.forEach((item, index) => {
-      console.log(item)
+      // console.log(item)
       let sp = this.renderItem({
         rank: item.sort, name: item.nickname, score: item.score, avatar: item.avatarUrl
       }, index);

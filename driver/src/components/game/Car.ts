@@ -4,7 +4,7 @@ class Car extends egret.Sprite {
   // 减速时的加速度
   a2: number = 1;
   // 横向匀速移动，该值不改变
-  speedX = 10;
+  speedX = 16;
   speedY = 0;
   // 暂存左右移动方向 0不动1左2右
   dirX = 0;

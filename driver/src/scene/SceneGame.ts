@@ -415,9 +415,9 @@ class SceneGame extends egret.DisplayObjectContainer {
     this.clearTimer()
     this.timer = setInterval(() => {  //30帧一秒
       this.enterFrame();
+      this.setProcess();
       if (this.daojishi > 0) {
         this.daojishi--;
-        this.setProcess();
       } else {
         //游戏结束
         let score = Util.getScore();

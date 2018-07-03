@@ -138,21 +138,22 @@ class LoginManager {
                 let w = res.screenWidth;
                 let ratio = w / h > 750 / 1334 ? h / 1334 : w / 750;
                 let stage: egret.Stage = egret.MainContext.instance.stage
+                console.log(ratio, stage.stageWidth, stage.stageHeight)
                 EventManager.pub('togglePageAuth', true)
                 let button = wx.createUserInfoButton({
                   type: 'text',
                   text: '登陆',
                   style: {
-                    left: (stage.stageWidth - 361) * ratio / 2,
+                    left: (w - 361 * ratio) / 2,
                     top: 810 * ratio,
                     width: 361 * ratio,
-                    height: 101 * ratio,
-                    lineHeight: 101 * ratio,
+                    height: 100 * ratio,
+                    lineHeight: 100 * ratio,
                     backgroundColor: '#ff6852',
                     color: '#ffffff',
                     textAlign: 'center',
                     fontSize: 16,
-                    borderRadius: 400
+                    borderRadius: 100 * ratio / 2
                   }
                 })
                 EventManager.sub('togglePageAuth', flag => {
@@ -188,6 +189,7 @@ class LoginManager {
   static gameLogin() {
     this.getUserInfo().then(data => {
       wxCenter.userInfo = data;
+      wxCenter.getMyBest();
       let openDataContext = wx.getOpenDataContext();
       openDataContext.postMessage({
         event: 'setInfo',

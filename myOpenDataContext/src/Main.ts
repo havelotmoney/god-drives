@@ -1,6 +1,7 @@
 class Main extends egret.DisplayObjectContainer {
   private wrap: egret.Sprite;
   private info = {};
+  private scroll: egret.ScrollView;
   constructor() {
     super();
     let self = this;
@@ -34,11 +35,6 @@ class Main extends egret.DisplayObjectContainer {
     }, this);
   }
 
-
-  /**
-   * 便于演示数据，这里使用家数据
-   * 有关获取还有的接口参考：https://mp.weixin.qq.com/debug/wxagame/dev/tutorial/open-ability/open-data.html?t=2018323
-   */
   private sort(a, b) {
     return JSON.parse(b['KVDataList'][0]['value'])['wxgame']['score'] - JSON.parse(a['KVDataList'][0]['value'])['wxgame']['score']
   }
@@ -61,9 +57,10 @@ class Main extends egret.DisplayObjectContainer {
       wrap2.addChild(sp);
     })
 
+    wrap2.height = 100 * list.length;
     let scroll = new egret.ScrollView();
     scroll.width = stage.stageWidth;
-    scroll.height = stage.stageHeight - 154;
+    scroll.height = 656;
     scroll.y = 22;
     scroll.horizontalScrollPolicy = 'off';
 
@@ -102,7 +99,7 @@ class Main extends egret.DisplayObjectContainer {
     bg.alpha = index % 2 == 0 ? 0 : 1;
     if (item.rank < 4) {
       let spRank = new ImageLoader({
-        src: 'resource/assets/rank-icon' + item.rank + '.png',
+        src: 'openDataContext/source/rank-icon' + item.rank + '.png',
         x: 40,
         y: 18
       })
