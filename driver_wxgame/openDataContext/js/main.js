@@ -163,7 +163,7 @@ var Main = (function (_super) {
         this.stage.addChild(this.wrap);
         this.wrap.removeChildren();
         var wrap2 = new egret.Sprite;
-        list = list.concat(list, list, list, list).sort(this.sort);
+        list = list.concat().sort(this.sort);
         list.forEach(function (config, index) {
             var sp = _this.renderItem({
                 rank: index + 1,

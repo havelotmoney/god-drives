@@ -7,6 +7,14 @@ declare module wx {
   function getSetting(obj)
   function createUserInfoButton(obj)
   function getSystemInfo(obj)
+  function onShareAppMessage(obj);
+  function shareAppMessage(obj)
+}
+
+declare namespace canvas {
+  function toTempFilePathSync(obj)
+  var width;
+  var height;
 }
 class wxCenter {
   static lastScore = 0;

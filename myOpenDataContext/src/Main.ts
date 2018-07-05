@@ -44,7 +44,7 @@ class Main extends egret.DisplayObjectContainer {
     this.stage.addChild(this.wrap)
     this.wrap.removeChildren();
     let wrap2 = new egret.Sprite;
-    list = list.concat(list, list, list, list).sort(this.sort);
+    list = list.concat().sort(this.sort);
     list.forEach((config, index) => {
       let sp = this.renderItem({
         rank: index + 1,

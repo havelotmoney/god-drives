@@ -82,6 +82,9 @@ class ResultLayer extends egret.DisplayObjectContainer {
     })
     btnShare.addChild(txtShare);
     this.addChild(btnShare);
+    btnShare.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
+      ShareDataManager.showShare()
+    }, this);
 
     let btnAgain = new Button({
       default: 'btn-bg-red_png',

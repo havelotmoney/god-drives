@@ -43,45 +43,57 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var OfflineModal = (function (_super) {
-    __extends(OfflineModal, _super);
-    function OfflineModal() {
+var RankBar = (function (_super) {
+    __extends(RankBar, _super);
+    function RankBar() {
         var _this = _super.call(this) || this;
-        _this.width = 408;
-        _this.height = 262;
-        _this.x = (UIConfig.width - 408) / 2;
-        _this.y = 80;
-        var bg = new Bitmap('modal-bg_png');
-        _this.addChild(bg);
-        var title = new Bitmap('modal-title_png');
-        _this.addChild(title);
-        title.x = 166;
-        title.y = 10;
-        _this.spText = new TextField({
-            size: 22,
-            y: 100,
-            x: 0,
-            width: 408,
-            text: '您已断开连接，即将退出游戏...',
-            color: 0x8a542e,
-            bold: true,
-            textAlign: 'center'
+        _this.rLogo = new Bitmap({
+            source: 'pic_redjt_png',
         });
-        _this.addChild(_this.spText);
-        var btn = new Bitmap('btn-sure_png');
-        _this.addChild(btn);
-        btn.x = 100;
-        btn.y = 170;
-        btn.touchEnabled = true;
-        btn.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
-            EventManager.pub("closeGame");
-            EventManager.pub('modal/onCloseOffline');
-        }, _this);
+        _this.addChild(_this.rLogo);
+        _this.rCont = new TextField({
+            fontFamily: 'YouYuan',
+            text: '增加120分',
+            size: 28,
+            color: 0x652106,
+            bold: true,
+        });
+        _this.rCont.x = _this.rLogo.width + 20;
+        _this.rCont.y = 15;
+        _this.addChild(_this.rCont);
         return _this;
     }
-    return OfflineModal;
-}(egret.DisplayObjectContainer));
-__reflect(OfflineModal.prototype, "OfflineModal");
+    Object.defineProperty(RankBar.prototype, "score", {
+        set: function (val) {
+            if (val >= 0) {
+                this.rCont.text = "增加" + val.toString() + "分";
+                this.rLogo.src = "pic_redjt_png";
+            }
+            else if (val < 0) {
+                this.rCont.text = "降低" + val.toString() + "分";
+                this.rLogo.src = "pic_bluejt_png";
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(RankBar.prototype, "rank", {
+        set: function (val) {
+            if (val >= 0) {
+                this.rCont.text = "排名上升" + val.toString() + "名";
+                this.rLogo.src = "pic_redjt_png";
+            }
+            else if (val < 0) {
+                this.rCont.text = "排名下降" + val.toString() + "名";
+                this.rLogo.src = "pic_bluejt_png";
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return RankBar;
+}(egret.Sprite));
+__reflect(RankBar.prototype, "RankBar");
 var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
@@ -923,6 +935,45 @@ var ScoreBar = (function (_super) {
     return ScoreBar;
 }(egret.DisplayObjectContainer));
 __reflect(ScoreBar.prototype, "ScoreBar");
+var OfflineModal = (function (_super) {
+    __extends(OfflineModal, _super);
+    function OfflineModal() {
+        var _this = _super.call(this) || this;
+        _this.width = 408;
+        _this.height = 262;
+        _this.x = (UIConfig.width - 408) / 2;
+        _this.y = 80;
+        var bg = new Bitmap('modal-bg_png');
+        _this.addChild(bg);
+        var title = new Bitmap('modal-title_png');
+        _this.addChild(title);
+        title.x = 166;
+        title.y = 10;
+        _this.spText = new TextField({
+            size: 22,
+            y: 100,
+            x: 0,
+            width: 408,
+            text: '您已断开连接，即将退出游戏...',
+            color: 0x8a542e,
+            bold: true,
+            textAlign: 'center'
+        });
+        _this.addChild(_this.spText);
+        var btn = new Bitmap('btn-sure_png');
+        _this.addChild(btn);
+        btn.x = 100;
+        btn.y = 170;
+        btn.touchEnabled = true;
+        btn.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            EventManager.pub("closeGame");
+            EventManager.pub('modal/onCloseOffline');
+        }, _this);
+        return _this;
+    }
+    return OfflineModal;
+}(egret.DisplayObjectContainer));
+__reflect(OfflineModal.prototype, "OfflineModal");
 var BarBottom = (function (_super) {
     __extends(BarBottom, _super);
     function BarBottom() {
@@ -961,57 +1012,6 @@ var BarBottom = (function (_super) {
     return BarBottom;
 }(egret.Sprite));
 __reflect(BarBottom.prototype, "BarBottom");
-var RankBar = (function (_super) {
-    __extends(RankBar, _super);
-    function RankBar() {
-        var _this = _super.call(this) || this;
-        _this.rLogo = new Bitmap({
-            source: 'pic_redjt_png',
-        });
-        _this.addChild(_this.rLogo);
-        _this.rCont = new TextField({
-            fontFamily: 'YouYuan',
-            text: '增加120分',
-            size: 28,
-            color: 0x652106,
-            bold: true,
-        });
-        _this.rCont.x = _this.rLogo.width + 20;
-        _this.rCont.y = 15;
-        _this.addChild(_this.rCont);
-        return _this;
-    }
-    Object.defineProperty(RankBar.prototype, "score", {
-        set: function (val) {
-            if (val >= 0) {
-                this.rCont.text = "增加" + val.toString() + "分";
-                this.rLogo.src = "pic_redjt_png";
-            }
-            else if (val < 0) {
-                this.rCont.text = "降低" + val.toString() + "分";
-                this.rLogo.src = "pic_bluejt_png";
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(RankBar.prototype, "rank", {
-        set: function (val) {
-            if (val >= 0) {
-                this.rCont.text = "排名上升" + val.toString() + "名";
-                this.rLogo.src = "pic_redjt_png";
-            }
-            else if (val < 0) {
-                this.rCont.text = "排名下降" + val.toString() + "名";
-                this.rLogo.src = "pic_bluejt_png";
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return RankBar;
-}(egret.Sprite));
-__reflect(RankBar.prototype, "RankBar");
 var TitleBar = (function (_super) {
     __extends(TitleBar, _super);
     function TitleBar() {
@@ -1329,6 +1329,40 @@ var RobotCenter = {
     }
 };
 RobotCenter.init();
+var ShareDataManager = (function () {
+    function ShareDataManager() {
+    }
+    ShareDataManager.showShare = function () {
+        var id = Math.floor(Math.random() * this.shareConfig.length);
+        var ratio = canvas.width / canvas.height > 500 / 400 ? 400 / canvas.height : 500 / canvas.width;
+        var w = ratio * canvas.width;
+        var h = ratio * canvas.height;
+        var x = (canvas.width - w) / 2;
+        var y = (canvas.height - h) / 2;
+        var icon = canvas.toTempFilePathSync({
+            x: x,
+            y: y,
+            width: w,
+            height: h
+        });
+        console.log(w, h, x, y);
+        wx.shareAppMessage({
+            title: this.shareConfig[id],
+            imageUrl: icon,
+            query: '',
+            success: function () {
+                // 用户确认分享后执行的回调函数
+            },
+            complete: function () {
+                console.log('分享完成，失败或成功都是');
+            }
+        });
+    };
+    ShareDataManager.shareConfig = ['老司机出发了，快上车吧', '看我天秀操作超神开车', '已经没人能追上我啦', '谁是本群漂移大神，看看你排第几'];
+    return ShareDataManager;
+}());
+__reflect(ShareDataManager.prototype, "ShareDataManager");
+window['ShareDataManager'] = ShareDataManager;
 var wxCenter = (function () {
     function wxCenter() {
     }
@@ -1739,6 +1773,9 @@ var ResultLayer = (function (_super) {
         });
         btnShare.addChild(txtShare);
         _this.addChild(btnShare);
+        btnShare.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            ShareDataManager.showShare();
+        }, _this);
         var btnAgain = new Button({
             default: 'btn-bg-red_png',
             x: UIConfig.stageW / 2,
@@ -2532,7 +2569,7 @@ var SceneGame = (function (_super) {
                 UImanager.showResult(score, isNew);
                 LoginManager.endGame(score);
             }
-        }, 33);
+        }, 1000 / 30);
     };
     SceneGame.prototype.enterFrame = function () {
         if (this.treePlantY - myCar.y > UIConfig.stageH) {
