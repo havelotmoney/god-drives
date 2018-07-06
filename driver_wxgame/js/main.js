@@ -177,7 +177,7 @@ var Main = (function (_super) {
         UImanager = new UIManager(this);
         UImanager.to('game');
         this.gameBgm = RES.getRes("carbgm_mp3");
-        this.soundChannel = this.gameBgm.play(0, -1);
+        // this.soundChannel = this.gameBgm.play(0, -1);
         EventManager.sub('tiki/musicLoadSuc', function () {
             if (_this.soundChannel) {
                 _this.soundChannel.stop();
@@ -1413,6 +1413,108 @@ var wxCenter = (function () {
 }());
 __reflect(wxCenter.prototype, "wxCenter");
 window['wxCenter'] = wxCenter;
+var BackLayer = (function (_super) {
+    __extends(BackLayer, _super);
+    function BackLayer() {
+        var _this = _super.call(this) || this;
+        _this.width = UIConfig.stageW;
+        _this.height = UIConfig.stageH;
+        var shape = new egret.Shape();
+        shape.graphics.beginFill(0x000000, 0.5);
+        shape.graphics.drawRect(0, 0, UIConfig.stageW, UIConfig.stageH);
+        shape.graphics.endFill();
+        _this.addChild(shape);
+        var bg = new Bitmap({
+            source: 'bg-rank_png',
+            width: 597,
+            height: 513,
+        });
+        bg.x = (UIConfig.stageW - bg.width) / 2;
+        bg.y = (UIConfig.stageH - bg.height) / 2;
+        bg.scale9Grid = new egret.Rectangle(18, 19, 18, 20);
+        _this.addChild(bg);
+        var bgtop = new Bitmap({
+            source: 'modal-yellow_png',
+        });
+        bgtop.x = bg.x;
+        bgtop.y = bg.y;
+        _this.addChild(bgtop);
+        var title = new Bitmap({
+            source: 'logo-tip_png',
+        });
+        title.x = (UIConfig.stageW - title.width) / 2;
+        title.y = bg.y + 25;
+        _this.addChild(title);
+        var closebtn = new Bitmap({
+            source: 'sceneclose_png',
+        });
+        closebtn.x = bg.x + 510;
+        closebtn.y = bg.y + 10;
+        _this.addChild(closebtn);
+        closebtn.touchEnabled = true;
+        closebtn.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            EventManager.pub('optBackLayer', false);
+        }, _this);
+        _this.btn_restart = new Button({
+            default: 'btn-bg-red_png',
+            touchScale: .9,
+        });
+        _this.btn_restart.y = bg.y + 375;
+        _this.btn_restart.x = (UIConfig.stageW) / 2;
+        _this.addChild(_this.btn_restart);
+        var start_sign = new Bitmap({
+            source: 'text-cxks2_png',
+        });
+        start_sign.x = (_this.btn_restart.width - start_sign.width) / 2;
+        start_sign.y = (_this.btn_restart.height - start_sign.height) / 2;
+        _this.btn_restart.addChild(start_sign);
+        _this.btn_restart.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            EventManager.pub('backtohall');
+            EventManager.pub('startGame');
+            EventManager.pub('optBackLayer', false);
+        }, _this);
+        _this.btn_backtohall = new Button({
+            default: 'btn-bg-org_png',
+            touchScale: .9,
+        });
+        _this.btn_backtohall.y = bg.y + 225;
+        _this.btn_backtohall.x = (UIConfig.stageW) / 2;
+        _this.btn_backtohall.visible = false;
+        _this.addChild(_this.btn_backtohall);
+        var back_sign = new Bitmap({
+            source: 'text-fhdt2_png',
+        });
+        back_sign.x = (_this.btn_restart.width - back_sign.width) / 2;
+        back_sign.y = (_this.btn_restart.height - back_sign.height) / 2;
+        _this.btn_backtohall.addChild(back_sign);
+        _this.btn_backtohall.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            // UImanager.showRank()
+            EventManager.pub('backtohall');
+            UImanager.hideRank();
+            UImanager.hideResult();
+            EventManager.pub('hideStartLayer');
+            EventManager.pub('optBackLayer', false);
+        }, _this);
+        var txtAuthTip = new TextField({
+            size: 28,
+            color: 0xffffff,
+            text: '登陆后才可以进行游戏哦~',
+            y: 950 - 13 + UIConfig.offsetH,
+            width: _this.width,
+            textAlign: 'center'
+        });
+        txtAuthTip.visible = false;
+        _this.addChild(txtAuthTip);
+        EventManager.sub('togglePageAuth', function (flag) {
+            _this.btn_restart.visible = !flag;
+            _this.btn_backtohall.visible = !flag;
+            txtAuthTip.visible = flag;
+        });
+        return _this;
+    }
+    return BackLayer;
+}(egret.Sprite));
+__reflect(BackLayer.prototype, "BackLayer");
 var RankLayer = (function (_super) {
     __extends(RankLayer, _super);
     function RankLayer() {
@@ -2237,6 +2339,7 @@ var SceneGame = (function (_super) {
         _this.robotDir = 'left';
         _this.timer = null;
         _this.daojishi = 30 * 10;
+        _this.pausesFlag = false;
         var self = _this;
         _this.init();
         // this.initLayer();
@@ -2315,6 +2418,16 @@ var SceneGame = (function (_super) {
         overLine.x = (UIConfig.stageW - overLine.width) / 2;
         overLine.y = -totalLen;
         this.streetWrap.addChild(overLine);
+        this.backbtn = new Bitmap({
+            source: 'scenebackbtn_png',
+        });
+        this.barWrap.addChild(this.backbtn);
+        this.backbtn.x = -10 + UIConfig.offsetW;
+        this.backbtn.y = -320;
+        this.backbtn.touchEnabled = true;
+        this.backbtn.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            EventManager.pub('optBackLayer', true);
+        }, this);
         // let pic_star = new Bitmap({
         //   source: 'pic_star_png',
         // })
@@ -2450,8 +2563,13 @@ var SceneGame = (function (_super) {
         this.hitBgm = RES.getRes("carcrash_mp3");
         this.startLayer = new StartLayer();
         this.addChild(this.startLayer);
+        // this.startLayer.visible = false;
+        this.backLayer = new BackLayer();
+        this.addChild(this.backLayer);
+        this.backLayer.visible = false;
     };
     SceneGame.prototype.startinit = function () {
+        this.pausesFlag = false;
         this.streetWrap.y = UIConfig.stageH;
         myCar.x = UIConfig.stageW / 2;
         myCar.y = -130;
@@ -2556,6 +2674,9 @@ var SceneGame = (function (_super) {
         LoginManager.startGame();
         this.clearTimer();
         this.timer = setInterval(function () {
+            if (_this.pausesFlag) {
+                return;
+            }
             _this.enterFrame();
             _this.setProcess();
             if (_this.daojishi > 0) {
@@ -2700,6 +2821,10 @@ var SceneGame = (function (_super) {
     SceneGame.prototype.fListen = function () {
         var _this = this;
         var self = this;
+        EventManager.sub('backtohall', function () {
+            _this.gameOverInit();
+            _this.timeBar_top.width = 530;
+        });
         EventManager.sub('playHitSound', function () {
             _this.hitsoundChannel = _this.hitBgm.play(0, 1);
         });
@@ -2742,6 +2867,9 @@ var SceneGame = (function (_super) {
         EventManager.sub('hideStartLayer', function () {
             _this.changeLayer(2);
         });
+        EventManager.sub('optBackLayer', function (power) {
+            _this.optBackLayer(power);
+        });
     };
     SceneGame.prototype.changeLayer = function (type) {
         if (type == 1) {
@@ -2755,9 +2883,15 @@ var SceneGame = (function (_super) {
             this.startLayer.visible = true;
         }
     };
+    SceneGame.prototype.optBackLayer = function (power) {
+        this.backLayer.visible = power || false;
+        this.pausesFlag = power;
+    };
     SceneGame.prototype.initStatus = function () {
         GameDataManager.oppIsReady = false;
         GameDataManager.mapData = [];
+        this.pausesFlag = false;
+        myCar.speedY = 0;
     };
     SceneGame.prototype.clearStage = function () {
     };
@@ -2770,6 +2904,7 @@ var SceneGame = (function (_super) {
         console.log('游戏重新初始化');
         this.initStatus();
         this.clearTimer();
+        this.startinit();
     };
     SceneGame.prototype.onEnter = function () {
         // this.gameStartInit();

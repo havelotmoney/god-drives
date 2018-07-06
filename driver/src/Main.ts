@@ -92,7 +92,7 @@ class Main extends egret.DisplayObjectContainer {
     UImanager.to('game');
 
     this.gameBgm = RES.getRes("carbgm_mp3");
-    this.soundChannel = this.gameBgm.play(0, -1);
+    // this.soundChannel = this.gameBgm.play(0, -1);
 
     EventManager.sub('tiki/musicLoadSuc', () => {
       if (this.soundChannel) {

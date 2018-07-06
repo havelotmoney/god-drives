@@ -43,10 +43,17 @@ class SceneGame extends egret.DisplayObjectContainer {
 
   private distance: BitmapText;
 
+  private backbtn: Bitmap;
+
   daojishi: number = 30 * 10;
+
+  pausesFlag: boolean = false;
 
   //开始层
   startLayer: StartLayer;
+
+  //返回层
+  backLayer: BackLayer;
 
   constructor() {
     super();
@@ -145,6 +152,18 @@ class SceneGame extends egret.DisplayObjectContainer {
     this.streetWrap.addChild(overLine);
 
 
+    this.backbtn = new Bitmap({
+      source: 'scenebackbtn_png',
+    })
+    this.barWrap.addChild(this.backbtn);
+
+    this.backbtn.x = -10 + UIConfig.offsetW;
+    this.backbtn.y = -320;
+
+    this.backbtn.touchEnabled = true;
+    this.backbtn.addEventListener(egret.TouchEvent.TOUCH_TAP, () => {
+      EventManager.pub('optBackLayer', true)
+    }, this)
 
     // let pic_star = new Bitmap({
     //   source: 'pic_star_png',
@@ -306,9 +325,18 @@ class SceneGame extends egret.DisplayObjectContainer {
     this.startLayer = new StartLayer();
     this.addChild(this.startLayer);
 
+    // this.startLayer.visible = false;
+
+    this.backLayer = new BackLayer();
+    this.addChild(this.backLayer);
+
+    this.backLayer.visible = false;
+
+
   }
 
   startinit() {
+    this.pausesFlag = false;
     this.streetWrap.y = UIConfig.stageH;
     myCar.x = UIConfig.stageW / 2;
     myCar.y = - 130;
@@ -414,6 +442,9 @@ class SceneGame extends egret.DisplayObjectContainer {
     LoginManager.startGame();
     this.clearTimer()
     this.timer = setInterval(() => {  //30帧一秒
+      if (this.pausesFlag) {
+        return;
+      }
       this.enterFrame();
       this.setProcess();
       if (this.daojishi > 0) {
@@ -562,6 +593,11 @@ class SceneGame extends egret.DisplayObjectContainer {
   private fListen() {
     let self = this;
 
+    EventManager.sub('backtohall', () => {
+      this.gameOverInit()
+    this.timeBar_top.width =  530;      
+    })
+
     EventManager.sub('playHitSound', () => {
       this.hitsoundChannel = this.hitBgm.play(0, 1);
     })
@@ -609,6 +645,9 @@ class SceneGame extends egret.DisplayObjectContainer {
     EventManager.sub('hideStartLayer', () => {
       this.changeLayer(2);
     })
+    EventManager.sub('optBackLayer', (power) => {
+      this.optBackLayer(power);
+    })
 
   }
 
@@ -622,11 +661,19 @@ class SceneGame extends egret.DisplayObjectContainer {
     } else {
       this.startLayer.visible = true;
     }
+
+  }
+
+  optBackLayer(power) {
+    this.backLayer.visible = power || false;
+    this.pausesFlag = power;
   }
 
   private initStatus() {
     GameDataManager.oppIsReady = false;
     GameDataManager.mapData = [];
+    this.pausesFlag = false;
+    myCar.speedY = 0;
   }
 
   private clearStage() {
@@ -645,6 +692,8 @@ class SceneGame extends egret.DisplayObjectContainer {
     console.log('游戏重新初始化')
     this.initStatus();
     this.clearTimer()
+    this.startinit();
+
   }
 
   onEnter() {
